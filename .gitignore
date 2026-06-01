@@ -1,0 +1,11 @@
+# macOS
+.DS_Store
+
+# editor / IDE
+.vscode/
+.idea/
+*.swp
+
+# scratch / build artifacts
+*.tmp
+*.bak

@@ -1,0 +1,931 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ward Callings Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fjalla+One&family=Lato:ital,wght@0,400;0,700;0,900;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --dark:#2f3034; --ink:#2b2d31; --muted:#6f747c; --line:#cfd3da;
+    --accent:#3f6fb0; --good:#3f9b6b; --warn:#b9863a;
+    --lato:"Lato",-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    --fjalla:"Fjalla One","Lato",Arial,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;}
+  body{ font-family:var(--lato); color:var(--ink); font-size:14px; line-height:1.45;
+    min-height:100vh; background:linear-gradient(178deg,#eef0f2 0%,#e6e3db 60%,#dedacf 100%);
+    background-attachment:fixed; }
+  button{ font:inherit; cursor:pointer; }
+
+  /* ---------- header ---------- */
+  .top-section{ background:var(--dark); color:#fff; position:sticky; top:0; z-index:40;
+    box-shadow:0 2px 9px rgba(0,0,0,.32); display:flex; align-items:center;
+    gap:14px; padding:8px 16px; flex-wrap:wrap; }
+  .brand{ font-family:var(--fjalla); font-size:23px; letter-spacing:1.5px;
+    text-transform:uppercase; white-space:nowrap; line-height:1; }
+  .changes-as-of{ font-size:12px; color:#c4c7cd; white-space:nowrap; }
+  .changes-as-of b{ color:#fff; }
+  .htools{ margin-left:auto; display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+  .htools .sep{ width:1px; height:22px; background:rgba(255,255,255,.22); margin:0 3px; }
+  .hbtn{ background:rgba(255,255,255,.12); color:#fff; border:1px solid rgba(255,255,255,.2);
+    border-radius:6px; padding:6px 11px; font-size:12.5px; font-weight:700; }
+  .hbtn:hover{ background:rgba(255,255,255,.24); }
+  .hbtn.go{ background:var(--accent); border-color:var(--accent); }
+  .hbtn.go:hover{ background:#345d96; }
+  .iconbtn{ background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.2);
+    border-radius:6px; width:32px; height:30px; display:flex; align-items:center;
+    justify-content:center; padding:0; }
+  .iconbtn:hover{ background:rgba(255,255,255,.24); }
+  .iconbtn.on{ background:#c9762f; border-color:#c9762f; }
+  .iconbtn svg{ width:16px; height:16px; fill:#fff; }
+  .hsearch{ font:inherit; font-size:12.5px; border:1px solid rgba(255,255,255,.2);
+    background:rgba(255,255,255,.14); color:#fff; border-radius:6px; padding:6px 9px;
+    width:160px; }
+  .hsearch::placeholder{ color:#c4c7cd; }
+  .printwrap{ position:relative; }
+  .printmenu{ position:absolute; right:0; top:36px; background:#3a3b40;
+    border:1px solid rgba(255,255,255,.16); border-radius:7px; padding:5px;
+    box-shadow:0 6px 18px rgba(0,0,0,.4); display:none; z-index:50; }
+  .printmenu.open{ display:block; }
+  .printmenu button{ display:block; width:100%; text-align:left; background:none;
+    border:0; color:#fff; padding:7px 14px; font-size:12.5px; border-radius:5px;
+    white-space:nowrap; }
+  .printmenu button:hover{ background:rgba(255,255,255,.14); }
+
+  /* ---------- board ---------- */
+  .board{ padding:14px 16px 70px; }
+  .dropzone{ border-radius:14px; padding:9px 13px 12px; margin:0 0 14px;
+    box-shadow:0 2px 7px rgba(0,0,0,.13); }
+  .dz-title{ font-family:var(--lato); font-weight:900; font-size:13px;
+    text-transform:uppercase; letter-spacing:.05em; color:#54585f; margin:0 0 7px;
+    display:flex; align-items:center; gap:8px; }
+  .dz-title .count{ font-weight:700; color:#8a8f97; font-size:12px; }
+  .pool{ background:#e7e8ea; border:1px solid #d2d4d8; }
+  .hide{ background:#d7d8da; border:1px solid #c6c7ca; }
+  .hide.collapsed .dz-body{ display:none; }
+  .members-row{ display:flex; flex-wrap:wrap; gap:7px; min-height:30px; }
+  .dz-hint{ color:#8a8f97; font-size:12px; font-style:italic; padding:3px 0; }
+
+  #columns{ column-width:340px; column-gap:14px; }
+  .org{ break-inside:avoid; -webkit-column-break-inside:avoid; display:inline-block;
+    width:100%; margin:0 0 14px; border-radius:14px; padding:8px 11px 12px;
+    background:var(--bg,#dde2e8); box-shadow:0 2px 8px rgba(0,0,0,.16); }
+  .org-head{ display:flex; align-items:center; justify-content:center;
+    position:relative; cursor:pointer; padding:3px 20px 7px; }
+  .org-title{ font-family:var(--lato); font-weight:700; font-size:23px;
+    color:#33363c; text-align:center; }
+  .org-head .caret{ position:absolute; right:4px; top:8px; font-size:11px;
+    color:rgba(0,0,0,.42); transition:transform .15s; }
+  .org.collapsed .caret{ transform:rotate(-90deg); }
+  .org.collapsed .org-body{ display:none; }
+
+  .sub{ background:rgba(255,255,255,.5); border-radius:10px; padding:6px 8px 9px;
+    margin:8px 0 0; }
+  .sub-title{ font-family:var(--lato); font-weight:700; font-size:15px;
+    color:#41454c; text-align:center; margin:1px 0 6px; }
+  .callings{ display:flex; flex-wrap:wrap; gap:6px; }
+
+  .calling{ flex:1 1 90px; min-width:90px; max-width:165px;
+    background:rgba(255,255,255,.34); border:1px solid rgba(0,0,0,.07);
+    border-radius:11px; padding:5px; position:relative; }
+  .calling.dragover{ outline:2px dashed var(--accent); outline-offset:1px; }
+  .calling.changed{ background:#d8eede; box-shadow:inset 3px 0 0 var(--good); }
+  .calling-name{ font-size:9.5px; font-weight:700; color:#3b4048; text-align:center;
+    line-height:1.16; min-height:24px; display:flex; align-items:flex-end;
+    justify-content:center; margin-bottom:4px; }
+  .slot{ display:flex; flex-direction:column; gap:4px; }
+  .vacant{ border:1px dashed #b3b8c0; border-radius:8px; text-align:center;
+    color:#9398a1; font-style:italic; font-size:10.5px; padding:7px 4px;
+    background:rgba(255,255,255,.3); }
+
+  .member{ background:#fff; border:1px solid #b9bec6; border-radius:9px;
+    box-shadow:0 1px 3px rgba(0,0,0,.16); padding:5px 7px; cursor:grab;
+    position:relative; }
+  .member:active{ cursor:grabbing; }
+  .member .mrow{ display:flex; align-items:center; gap:4px; }
+  .member .mname{ flex:1; text-align:center; font-weight:700; font-size:11.5px;
+    color:#23262b; overflow-wrap:anywhere; }
+  .member .chev{ color:#aab0ba; font-size:9px; transition:transform .15s; }
+  .member.expanded .chev{ transform:rotate(180deg); }
+  .member.displaced{ border-color:var(--good); }
+  .member .mdetail{ display:none; margin-top:5px; padding-top:5px;
+    border-top:1px solid #ebedf0; font-size:10.5px; color:#5a5f67; }
+  .member.expanded .mdetail{ display:block; }
+  .member .mdetail .d{ display:flex; justify-content:space-between; gap:6px; padding:1px 0; }
+  .member .mbtns{ display:flex; gap:5px; margin-top:5px; }
+  .member .mbtns button{ flex:1; font-size:10px; font-weight:700; border-radius:5px;
+    border:1px solid #c4cad3; background:#f4f5f7; color:#444; padding:3px 4px; }
+  .member .mbtns button:hover{ background:#e7e9ec; }
+  .yes{ color:var(--good); font-weight:700; } .no{ color:#c0603a; font-weight:700; }
+
+  /* time-in-calling heat view */
+  .timeview .member .mname{ position:relative; }
+  .timeview .in-calling-6{ background:#e9f1e4; }
+  .timeview .in-calling-12{ background:#edf0db; }
+  .timeview .in-calling-18{ background:#f1efd2; }
+  .timeview .in-calling-24{ background:#f5edc6; }
+  .timeview .in-calling-30{ background:#f7e7b9; }
+  .timeview .in-calling-36{ background:#f6ddab; }
+  .timeview .in-calling-42{ background:#f3d09c; }
+  .timeview .in-calling-48{ background:#eec28f; }
+  .timeview .in-calling-54{ background:#e9b384; }
+  .timeview .in-calling-60{ background:#e2a378; }
+  .timeview .in-calling-66{ background:#da926c; }
+  .timeview .in-calling-72{ background:#d28361; }
+  .timelegend{ display:none; gap:0; align-items:center; font-size:11px;
+    color:#54585f; margin:0 0 12px; }
+  body.timeview .timelegend{ display:flex; }
+  .timelegend .sw{ width:22px; height:13px; border:1px solid rgba(0,0,0,.12); }
+
+  .add-calling{ flex:0 0 auto; align-self:center; background:rgba(255,255,255,.55);
+    border:1px dashed #aeb4bd; border-radius:9px; color:#6a7079; font-weight:700;
+    font-size:15px; width:26px; height:30px; line-height:1; }
+  .add-calling:hover{ background:#fff; color:var(--accent); }
+
+  /* empty state */
+  .empty{ max-width:540px; margin:36px auto; background:rgba(255,255,255,.72);
+    border-radius:14px; padding:30px 26px; text-align:center; }
+  .empty h2{ font-family:var(--fjalla); font-weight:400; font-size:25px;
+    letter-spacing:.5px; margin:0 0 6px; color:#33363c; }
+  .empty p{ color:#54585f; margin:6px 0; }
+  .empty .row{ margin-top:14px; display:flex; gap:9px; justify-content:center; flex-wrap:wrap; }
+  .bigbtn{ font-weight:700; border-radius:8px; padding:10px 17px; border:1px solid var(--accent);
+    background:var(--accent); color:#fff; }
+  .bigbtn.alt{ background:#fff; color:var(--accent); }
+
+  /* ---------- modals ---------- */
+  .modal{ position:fixed; inset:0; background:rgba(22,24,30,.55); z-index:80;
+    display:flex; align-items:center; justify-content:center; padding:18px; }
+  .modal.hidden{ display:none; }
+  .modalbox{ background:#fff; border-radius:13px; padding:20px 22px; width:520px;
+    max-width:100%; max-height:90vh; overflow:auto; }
+  .modalbox h3{ margin:0 0 3px; font-family:var(--fjalla); font-weight:400;
+    font-size:21px; letter-spacing:.5px; color:#33363c; }
+  .modalbox p{ color:#54585f; font-size:13px; margin:6px 0; }
+  .modalbox ol{ padding-left:20px; } .modalbox ol li{ margin:5px 0; font-size:13px; }
+  .modalbox textarea{ width:100%; border:1px solid var(--line); border-radius:7px;
+    padding:9px; font-family:ui-monospace,Menlo,Consolas,monospace; font-size:11px; }
+  code{ background:#eef0f3; padding:1px 5px; border-radius:4px; font-size:12px; }
+  .bm{ display:inline-block; background:var(--accent); color:#fff; text-decoration:none;
+    font-weight:700; padding:10px 18px; border-radius:8px; cursor:grab; }
+  details summary{ cursor:pointer; color:var(--accent); font-weight:700; font-size:13px; }
+  .mbtnrow{ display:flex; gap:8px; margin-top:16px; flex-wrap:wrap; }
+  .mbtnrow button{ font-weight:700; border-radius:7px; padding:9px 15px;
+    border:1px solid var(--accent); background:var(--accent); color:#fff; }
+  .mbtnrow button.ghost{ background:#fff; color:var(--accent); }
+  .errline{ color:#c0392b; font-size:13px; margin-top:6px; min-height:16px; }
+
+  #flash{ position:fixed; bottom:18px; left:50%; transform:translateX(-50%);
+    background:var(--dark); color:#fff; padding:10px 18px; border-radius:8px;
+    font-size:13px; box-shadow:0 4px 16px rgba(0,0,0,.3); z-index:90; }
+  #flash.hidden{ display:none; }
+
+  /* ---------- print ---------- */
+  #printArea{ display:none; }
+  @media print{
+    body{ background:#fff; }
+    #app,#flash,.modal{ display:none !important; }
+    #printArea{ display:block; }
+    .p-org{ break-inside:avoid; }
+  }
+  #printArea h1{ font-family:var(--fjalla); font-weight:400; color:#2f3034;
+    font-size:22px; margin:0 0 2px; }
+  #printArea .p-meta{ color:#666; font-size:12px; margin:0 0 12px; }
+  #printArea h2{ color:#2f3034; font-size:15px; border-bottom:2px solid #2f3034;
+    padding-bottom:2px; margin:16px 0 4px; }
+  #printArea h3{ font-size:12px; color:#555; margin:9px 0 3px; }
+  #printArea table{ width:100%; border-collapse:collapse; font-size:12px; }
+  #printArea th,#printArea td{ text-align:left; padding:4px 7px;
+    border-bottom:1px solid #ddd; vertical-align:top; }
+  #printArea th{ background:#f2f3f5; font-size:10px; text-transform:uppercase; color:#555; }
+  #printArea .p-vac{ color:#b3261e; font-style:italic; }
+  #printArea .p-chg{ padding:5px 0; border-bottom:1px solid #eee; font-size:12.5px; }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div class="top-section">
+    <span class="brand">Callings Manager</span>
+    <span class="changes-as-of" id="changesAsOf"></span>
+    <div class="htools">
+      <input type="text" class="hsearch" id="search" placeholder="Search&hellip;">
+      <button class="hbtn go" data-act="getdata">Get data</button>
+      <button class="hbtn" data-act="paste">Paste</button>
+      <button class="hbtn" data-act="open">Open</button>
+      <button class="hbtn" data-act="save">Save</button>
+      <span class="sep"></span>
+      <button class="iconbtn" data-act="addmember" title="Add a member">
+        <svg viewBox="0 0 24 24"><path d="M15 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm-9 0v3H3v2h3v3h2v-3h3v-2H8v-3Zm9 2c-2.7 0-8 1.3-8 4v2h16v-2c0-2.7-5.3-4-8-4Z"/></svg>
+      </button>
+      <button class="iconbtn" data-act="time" id="timeBtn" title="Time in calling">
+        <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8Zm1-13h-2v6l5 3 1-1.7-4-2.3Z"/></svg>
+      </button>
+      <span class="printwrap">
+        <button class="iconbtn" data-act="printmenu" title="Print">
+          <svg viewBox="0 0 24 24"><path d="M19 8H5a3 3 0 0 0-3 3v6h4v4h12v-4h4v-6a3 3 0 0 0-3-3Zm-3 11H8v-5h8Zm3-7a1 1 0 1 1 1-1 1 1 0 0 1-1 1ZM18 3H6v4h12Z"/></svg>
+        </button>
+        <div class="printmenu" id="printMenu">
+          <button data-act="printchanges">Print Changes</button>
+          <button data-act="printall">Print All Callings</button>
+        </div>
+      </span>
+    </div>
+  </div>
+
+  <div class="board" id="board"></div>
+</div>
+
+<div id="printArea"></div>
+
+<!-- get data modal -->
+<div id="getdataModal" class="modal hidden">
+  <div class="modalbox">
+    <h3>Get your ward's callings</h3>
+    <p>The Church retired callingmanager.com's old import link. This grabs the data
+    straight off the LCR page instead &mdash; nothing is uploaded anywhere.</p>
+    <p style="font-weight:700;color:#33363c;margin-top:14px">1. Add the grab button (one time)</p>
+    <p>Drag this onto your browser's bookmarks bar:</p>
+    <p style="margin:10px 0"><a class="bm" id="bookmarklet" href="#">&#128229; Grab Ward Callings</a></p>
+    <details>
+      <summary>Can't drag it? Add it manually</summary>
+      <p>Make a new bookmark and paste this as its URL:</p>
+      <textarea id="bmcode" readonly rows="3" onclick="this.select()"></textarea>
+    </details>
+    <p style="font-weight:700;color:#33363c;margin-top:14px">2. Pull the data</p>
+    <ol>
+      <li>Sign in to <code>lcr.churchofjesuschrist.org</code>.</li>
+      <li>Open <b>Callings &rarr; Organizations</b> and let it finish loading.</li>
+      <li>Click your <b>Grab Ward Callings</b> bookmark, then click <b>Copy</b>.</li>
+      <li>Come back, hit <b>Paste data</b> below, and paste it in.</li>
+    </ol>
+    <div class="mbtnrow">
+      <button id="gotoPaste">Paste data now</button>
+      <button class="ghost" data-close="getdataModal">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- paste modal -->
+<div id="pasteModal" class="modal hidden">
+  <div class="modalbox">
+    <h3>Paste callings data</h3>
+    <p>Paste what the <b>Grab Ward Callings</b> bookmark copied, or a saved project file.</p>
+    <textarea id="pasteText" rows="9" placeholder="Paste here&hellip;"></textarea>
+    <div class="errline" id="pasteMsg"></div>
+    <div class="mbtnrow">
+      <button id="pasteLoad">Load data</button>
+      <button class="ghost" data-close="pasteModal">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="flash" class="hidden"></div>
+<input type="file" id="fileInput" accept=".json,application/json" style="display:none">
+
+<script>
+"use strict";
+
+/* ====================== scraper (also used by the bookmarklet) ============= */
+function bmScrape(){
+  var H=location.host||"";
+  if(H.indexOf("lcr.churchofjesuschrist.org")<0){
+    alert("Open the LCR Organizations page first, then click this button:\n\n"
+      +"https://lcr.churchofjesuschrist.org/mlt/orgs?lang=eng");
+    return null;
+  }
+  var um=(document.body.innerText||"").match(/[^\n]*\b(?:Ward|Branch)\s*\(\s*\d+\s*\)/);
+  var unit=um?um[0].trim():"My Unit";
+  var nodes=document.querySelectorAll("h1,h2,h3,h4,h5,table");
+  var main="",sub="",orgs=[],map={};
+  for(var i=0;i<nodes.length;i++){
+    var n=nodes[i],t=n.tagName;
+    if(t==="TABLE"){
+      var rs=n.querySelectorAll("tbody tr");
+      if(!rs.length)continue;
+      var cl=[];
+      for(var j=0;j<rs.length;j++){
+        var c=rs[j].children;
+        var nm=((c[1]&&c[1].innerText)||"").trim();
+        var vac=(/vacant/i.test(nm)||nm==="");
+        cl.push({calling:((c[0]&&c[0].innerText)||"").trim(),
+          member:vac?"":nm,vacant:vac,
+          sustained:((c[2]&&c[2].innerText)||"").trim(),
+          setApart:!!(c[3]&&c[3].querySelector("svg"))});
+      }
+      var k=main||"(Organization)";
+      if(!(k in map)){map[k]=orgs.length;orgs.push({name:k,subOrgs:[]});}
+      orgs[map[k]].subOrgs.push({name:sub,callings:cl});
+    }else{
+      var x=(n.innerText||"").trim();
+      if(t==="H1"||t==="H2"){main=x;sub="";}
+      else if(t==="H3"){sub=x;}
+      else if(!sub){sub=x;}
+    }
+  }
+  if(!orgs.length){
+    alert("No calling tables were found.\n\nMake sure you are on the LCR Organizations page "
+      +"(Callings > Organizations) and that it has fully loaded, then try again.");
+    return null;
+  }
+  return {unit:unit,generated:new Date().toISOString(),
+    source:"lcr.churchofjesuschrist.org/mlt/orgs",organizations:orgs};
+}
+function bmDeliver(){
+  var data=bmScrape();
+  if(!data)return;
+  var json=JSON.stringify(data);
+  var w=window.open("","_blank","width=560,height=540");
+  if(!w){alert("Please allow pop-ups for this site, then click the button again.");return;}
+  var d=w.document;
+  d.write("<!doctype html><meta charset=utf-8><title>Ward Callings data</title>"
+    +"<body style='font-family:-apple-system,Segoe UI,Arial,sans-serif;margin:16px;color:#222'>"
+    +"<h3 style='margin:0 0 6px;color:#2f3034'>Ward callings ready</h3>"
+    +"<p style='font-size:13px;color:#555;margin:0 0 10px'>Click <b>Copy</b>, then go to the "
+    +"Ward Callings Manager, choose <b>Paste</b>, and paste.</p>"
+    +"<button id=c style='font:inherit;padding:8px 16px;background:#3f6fb0;color:#fff;"
+    +"border:0;border-radius:7px;font-weight:600;cursor:pointer'>Copy</button> "
+    +"<span id=m style='font-size:13px;color:#1a7f37;font-weight:600'></span>"
+    +"<textarea id=t style='width:100%;height:400px;margin-top:8px;font-size:11px;"
+    +"font-family:ui-monospace,Menlo,monospace'></textarea>");
+  d.close();
+  var t=d.getElementById("t");
+  t.value=json;t.focus();t.select();
+  d.getElementById("c").onclick=function(){
+    t.focus();t.select();
+    var ok=false;
+    try{ok=d.execCommand("copy");}catch(e){}
+    if(w.navigator&&w.navigator.clipboard){w.navigator.clipboard.writeText(json);ok=true;}
+    d.getElementById("m").textContent=ok?"Copied!":"Press Ctrl/Cmd+C to copy.";
+  };
+  try{if(navigator.clipboard)navigator.clipboard.writeText(json);}catch(e){}
+}
+
+/* ====================== helpers =========================================== */
+function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){
+  return ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"})[c]; }); }
+function deepCopy(o){ return o?JSON.parse(JSON.stringify(o)):o; }
+var MON={jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
+function parseLcrDate(s){
+  if(!s)return null;
+  var m=String(s).trim().match(/^(\d{1,2})\s+([A-Za-z]{3,})\s+(\d{4})$/);
+  if(m){ var a=MON[m[2].slice(0,3).toLowerCase()]; if(a!=null)return new Date(+m[3],a,+m[1]); }
+  m=String(s).trim().match(/^(\d{4})\s+([A-Za-z]{3,})\s+(\d{1,2})$/);
+  if(m){ var b=MON[m[2].slice(0,3).toLowerCase()]; if(b!=null)return new Date(+m[1],b,+m[3]); }
+  return null;
+}
+function tenureMonths(s){
+  var d=parseLcrDate(s); if(!d)return null;
+  var now=new Date();
+  var mm=(now.getFullYear()-d.getFullYear())*12+(now.getMonth()-d.getMonth());
+  if(now.getDate()<d.getDate())mm--;
+  return mm<0?0:mm;
+}
+function tenureBucket(s){
+  var m=tenureMonths(s); if(m==null)return 0;
+  var b=[72,66,60,54,48,42,36,30,24,18,12,6];
+  for(var i=0;i<b.length;i++)if(m>=b[i])return b[i];
+  return 0;
+}
+function tenureText(s){
+  var m=tenureMonths(s); if(m==null)return "";
+  var y=Math.floor(m/12),mo=m%12,p=[];
+  if(y)p.push(y+" yr"+(y>1?"s":""));
+  p.push(mo+" mo");
+  return p.join(" ");
+}
+function fmtDate(iso){
+  if(!iso)return "—";
+  var d=new Date(iso); if(isNaN(d))return "—";
+  return d.toLocaleDateString(undefined,{year:"numeric",month:"short",day:"numeric"});
+}
+
+/* ====================== colour palette ==================================== */
+var ORG_COLORS={
+  "Bishopric":{bg:"#e8dac6"},
+  "Elders Quorum":{bg:"#d4e1ee"},
+  "High Priests Group":{bg:"#cdd6e6"},
+  "Relief Society":{bg:"#ecd9dd"},
+  "Aaronic Priesthood Quorums":{bg:"#d3e4e0"},
+  "Young Men":{bg:"#d6e3ea"},
+  "Young Women":{bg:"#e1d9ec"},
+  "Sunday School":{bg:"#dde7d2"},
+  "Primary":{bg:"#f0e8ca"},
+  "Ward Missionaries":{bg:"#d2e2e9"},
+  "Full-Time Missionaries":{bg:"#d2e2e9"},
+  "Temple and Family History":{bg:"#e9ddcd"},
+  "Other Callings":{bg:"#e0e0e1"}
+};
+var FALLBACK=["#dce4ee","#ecdcd5","#dfe7d3","#ece4cb","#e3dbe9","#d5e6e3",
+  "#e8ddcf","#dee2e7","#e9dadb","#d8e2da"];
+function orgColor(name,i){
+  return (ORG_COLORS[name]&&ORG_COLORS[name].bg)||FALLBACK[i%FALLBACK.length];
+}
+
+/* ====================== state / model ===================================== */
+var STORE="wardCallingsBoard.v4";
+var MODEL=null;
+var EXPANDED={},COLLAPSED={},HIDECOLLAPSED=false,DRAG_ID=null,SEARCH="";
+var SEP="␟";
+
+function newModel(){ return {unit:"",loadedAt:"",callings:[],members:{},seq:0}; }
+function buildModel(scraped){
+  var M=newModel();
+  M.unit=scraped.unit||"";
+  M.loadedAt=scraped.generated||new Date().toISOString();
+  (scraped.organizations||[]).forEach(function(o){
+    o.subOrgs.forEach(function(s){
+      var occ={};
+      s.callings.forEach(function(c){
+        var nm=c.calling||"";
+        occ[nm]=(occ[nm]||0)+1;
+        var cid=[o.name,s.name||"",nm,occ[nm]].join(SEP);
+        var calling={id:cid,org:o.name,sub:s.name||"",name:nm,home:null};
+        if(!c.vacant){
+          var mid="m"+(M.seq++);
+          M.members[mid]={id:mid,name:c.member,sustained:c.sustained||"",
+            setApart:!!c.setApart,home:cid,loc:cid};
+          calling.home=mid;
+        }
+        M.callings.push(calling);
+      });
+    });
+  });
+  return M;
+}
+function membersAt(loc){
+  var out=[];
+  for(var k in MODEL.members)if(MODEL.members[k].loc===loc)out.push(MODEL.members[k]);
+  return out;
+}
+function callingChanged(c){
+  var cur=membersAt(c.id);
+  if(!c.home)return cur.length>0;
+  return !(cur.length===1&&cur[0].id===c.home);
+}
+function changedCallings(){ return MODEL.callings.filter(callingChanged); }
+
+/* ====================== persistence ======================================= */
+function save(){ try{ localStorage.setItem(STORE,JSON.stringify(MODEL)); }catch(e){} }
+function load(){
+  try{
+    var s=localStorage.getItem(STORE);
+    if(s){ var m=JSON.parse(s);
+      if(m&&m.callings&&m.members){ MODEL=m; MODEL.seq=MODEL.seq||0; return; } }
+  }catch(e){}
+  MODEL=newModel();
+}
+
+/* ====================== ingest ============================================ */
+function ingest(obj){
+  if(obj&&obj.organizations){
+    MODEL=buildModel(obj);
+    flash("Loaded "+MODEL.callings.length+" callings.");
+  }else if(obj&&obj.callings&&obj.members){
+    MODEL=obj; MODEL.seq=MODEL.seq||0;
+    flash("Project opened.");
+  }else{
+    throw new Error("This doesn't look like callings data or a saved project.");
+  }
+  save(); renderAll();
+}
+
+/* ====================== flash ============================================= */
+var flashTimer=null;
+function flash(msg){
+  var f=document.getElementById("flash");
+  f.textContent=msg; f.classList.remove("hidden");
+  clearTimeout(flashTimer);
+  flashTimer=setTimeout(function(){ f.classList.add("hidden"); },2600);
+}
+
+/* ====================== rendering ========================================= */
+function renderAll(){
+  var d=new Date();
+  document.getElementById("changesAsOf").innerHTML=MODEL.callings.length
+    ? ("Changes as of <b>"+d.toLocaleDateString(undefined,{month:"long",day:"numeric",year:"numeric"})
+       +"</b> &middot; <b>"+changedCallings().length+"</b> changed")
+    : "";
+  renderBoard();
+}
+function matchSearch(text){
+  return !SEARCH || String(text||"").toLowerCase().indexOf(SEARCH)>-1;
+}
+function memberCard(m){
+  var bucket=tenureBucket(m.sustained);
+  var displaced=(m.home&&m.loc!==m.home)||(!m.home);
+  var cls="member in-calling-"+bucket+(EXPANDED[m.id]?" expanded":"")
+    +(displaced&&m.loc!==m.home?" displaced":"");
+  var det="<div class='mdetail'>"
+    +"<div class='d'><span>Sustained</span><span>"+esc(m.sustained||"—")+"</span></div>"
+    +"<div class='d'><span>Time in calling</span><span>"+esc(tenureText(m.sustained)||"—")+"</span></div>"
+    +"<div class='d'><span>Set apart</span><span>"
+      +(m.home?(m.setApart?"<span class='yes'>Yes</span>":"<span class='no'>No</span>"):"&mdash;")
+      +"</span></div>"
+    +"<div class='mbtns'><button data-rel='"+esc(m.id)+"'>To Names</button>"
+    +"<button data-hide='"+esc(m.id)+"'>Hide</button></div></div>";
+  return "<div class='"+cls+"' draggable='true' data-mid='"+esc(m.id)+"'>"
+    +"<div class='mrow'><span class='mname'>"+esc(m.name)+"</span>"
+    +"<span class='chev'>&#9660;</span></div>"+det+"</div>";
+}
+function callingCard(c){
+  var cur=membersAt(c.id);
+  var cls="calling"+(callingChanged(c)?" changed":"");
+  var inner=cur.length
+    ? "<div class='slot'>"+cur.map(memberCard).join("")+"</div>"
+    : "<div class='vacant'>Vacant</div>";
+  return "<div class='"+cls+"' data-cid='"+esc(c.id)+"'>"
+    +"<div class='calling-name'>"+esc(c.name)+"</div>"+inner+"</div>";
+}
+function renderBoard(){
+  var board=document.getElementById("board");
+  if(!MODEL.callings.length){
+    board.innerHTML="<div class='empty'><h2>Welcome</h2>"
+      +"<p>Pull your ward's callings to begin, or explore with sample data.</p>"
+      +"<p>Then drag members between callings to plan changes &mdash; everything stays "
+      +"in your browser.</p>"
+      +"<div class='row'><button class='bigbtn' data-act='getdata'>Get data from LCR</button>"
+      +"<button class='bigbtn alt' data-act='demo'>Try the demo</button></div></div>";
+    return;
+  }
+  /* group callings by org -> sub, preserving order */
+  var orgs=[],oidx={};
+  MODEL.callings.forEach(function(c){
+    if(!(c.org in oidx)){ oidx[c.org]=orgs.length; orgs.push({name:c.org,subs:[],sidx:{}}); }
+    var O=orgs[oidx[c.org]];
+    if(!(c.sub in O.sidx)){ O.sidx[c.sub]=O.subs.length; O.subs.push({name:c.sub,callings:[]}); }
+    O.subs[O.sidx[c.sub]].callings.push(c);
+  });
+
+  var html="";
+  /* names-to-consider pool */
+  var pool=membersAt("pool");
+  html+="<div class='dropzone pool' data-loc='pool'>"
+    +"<div class='dz-title'>Names to Consider <span class='count'>"+pool.length+"</span></div>"
+    +"<div class='dz-body'><div class='members-row'>"
+    +(pool.length?pool.map(memberCard).join("")
+       :"<div class='dz-hint'>Drag a released member here, or use Add a member. "
+       +"Drag a name onto any calling to propose them.</div>")
+    +"</div></div></div>";
+
+  /* time legend */
+  html+="<div class='timelegend'>Time in calling: &nbsp;<span class='sw' style='background:#e9f1e4'></span>"
+    +"<span class='sw' style='background:#f5edc6'></span>"
+    +"<span class='sw' style='background:#eec28f'></span>"
+    +"<span class='sw' style='background:#d28361'></span>&nbsp; new &rarr; long-serving</div>";
+
+  /* organization columns */
+  html+="<div id='columns'>";
+  orgs.forEach(function(O,i){
+    var col=COLLAPSED[O.name]?" collapsed":"";
+    var body="";
+    O.subs.forEach(function(S){
+      var cards=S.callings.filter(function(c){
+        if(!SEARCH)return true;
+        if(matchSearch(c.name))return true;
+        return membersAt(c.id).some(function(m){return matchSearch(m.name);});
+      }).map(callingCard).join("");
+      var addBtn="<button class='add-calling' data-addcalling='"
+        +esc(O.name)+SEP+esc(S.name)+"' title='Add a calling'>+</button>";
+      body+="<div class='sub'>"
+        +(S.name?"<div class='sub-title'>"+esc(S.name)+"</div>":"")
+        +"<div class='callings'>"+cards+addBtn+"</div></div>";
+    });
+    html+="<div class='org"+col+"' data-org='"+esc(O.name)+"' style='--bg:"
+      +orgColor(O.name,i)+"'>"
+      +"<div class='org-head'><span class='org-title'>"+esc(O.name)+"</span>"
+      +"<span class='caret'>&#9660;</span></div>"
+      +"<div class='org-body'>"+body+"</div></div>";
+  });
+  html+="</div>";
+
+  /* hide bin */
+  var hid=membersAt("hide");
+  html+="<div class='dropzone hide"+(HIDECOLLAPSED?" collapsed":"")+"' data-loc='hide'>"
+    +"<div class='dz-title' id='hideTitle'>Hide <span class='count'>"+hid.length+"</span></div>"
+    +"<div class='dz-body'><div class='members-row'>"
+    +(hid.length?hid.map(memberCard).join("")
+       :"<div class='dz-hint'>Drag members here to set them aside.</div>")
+    +"</div></div></div>";
+
+  board.innerHTML=html;
+}
+
+/* ====================== interactions ====================================== */
+function doAct(act,el){
+  if(act==="getdata"){ show("getdataModal"); }
+  else if(act==="paste"){
+    document.getElementById("pasteText").value="";
+    document.getElementById("pasteMsg").textContent="";
+    show("pasteModal");
+  }
+  else if(act==="open"){ document.getElementById("fileInput").click(); }
+  else if(act==="save"){ saveProject(); }
+  else if(act==="demo"){ ingest(deepCopy(DEMO)); }
+  else if(act==="addmember"){ addMember(); }
+  else if(act==="time"){
+    document.body.classList.toggle("timeview");
+    document.getElementById("timeBtn").classList.toggle("on",
+      document.body.classList.contains("timeview"));
+  }
+  else if(act==="printmenu"){
+    document.getElementById("printMenu").classList.toggle("open");
+  }
+  else if(act==="printall"){ document.getElementById("printMenu").classList.remove("open"); doPrint("all"); }
+  else if(act==="printchanges"){ document.getElementById("printMenu").classList.remove("open"); doPrint("changes"); }
+}
+function addMember(){
+  var name=prompt("Name of the member to add (Last, First):","");
+  if(name==null)return;
+  name=name.trim(); if(!name)return;
+  var mid="m"+(MODEL.seq++);
+  MODEL.members[mid]={id:mid,name:name,sustained:"",setApart:false,home:null,loc:"pool"};
+  save(); renderAll();
+  flash("Added "+name+" to Names to Consider.");
+}
+function addCalling(key){
+  var parts=key.split(SEP),org=parts[0],sub=parts[1]||"";
+  var name=prompt("Name of the new calling:","");
+  if(name==null)return;
+  name=name.trim(); if(!name)return;
+  var cid=[org,sub,name,"x"+(MODEL.seq++)].join(SEP);
+  /* insert after the last calling of this org+sub */
+  var lastIdx=-1;
+  MODEL.callings.forEach(function(c,i){ if(c.org===org&&c.sub===sub)lastIdx=i; });
+  var calling={id:cid,org:org,sub:sub,name:name,home:null,userAdded:true};
+  if(lastIdx>=0)MODEL.callings.splice(lastIdx+1,0,calling);
+  else MODEL.callings.push(calling);
+  save(); renderAll();
+}
+function moveMember(mid,loc){
+  if(!MODEL.members[mid])return;
+  MODEL.members[mid].loc=loc;
+  save(); renderAll();
+}
+
+/* drag and drop */
+document.getElementById("board").addEventListener("dragstart",function(e){
+  var m=e.target.closest(".member");
+  if(!m){ e.preventDefault(); return; }
+  DRAG_ID=m.dataset.mid;
+  e.dataTransfer.effectAllowed="move";
+  try{ e.dataTransfer.setData("text/plain",DRAG_ID); }catch(err){}
+});
+document.getElementById("board").addEventListener("dragover",function(e){
+  var z=e.target.closest(".calling,.dropzone");
+  if(z){ e.preventDefault(); e.dataTransfer.dropEffect="move";
+    if(!z.classList.contains("dragover")){
+      clearDragHover(); z.classList.add("dragover"); } }
+});
+document.getElementById("board").addEventListener("drop",function(e){
+  var z=e.target.closest(".calling,.dropzone");
+  clearDragHover();
+  if(!z||!DRAG_ID)return;
+  e.preventDefault();
+  var loc=z.classList.contains("dropzone")?z.dataset.loc:z.dataset.cid;
+  moveMember(DRAG_ID,loc);
+  DRAG_ID=null;
+});
+document.getElementById("board").addEventListener("dragend",function(){
+  clearDragHover(); DRAG_ID=null;
+});
+function clearDragHover(){
+  Array.prototype.forEach.call(document.querySelectorAll(".dragover"),
+    function(x){ x.classList.remove("dragover"); });
+}
+
+/* clicks */
+document.getElementById("board").addEventListener("click",function(e){
+  var b=e.target.closest("[data-act]");
+  if(b){ doAct(b.dataset.act,b); return; }
+  var rel=e.target.closest("[data-rel]");
+  if(rel){ moveMember(rel.dataset.rel,"pool"); return; }
+  var hd=e.target.closest("[data-hide]");
+  if(hd){ moveMember(hd.dataset.hide,"hide"); return; }
+  var ac=e.target.closest("[data-addcalling]");
+  if(ac){ addCalling(ac.dataset.addcalling); return; }
+  var mem=e.target.closest(".member");
+  if(mem){
+    var id=mem.dataset.mid;
+    EXPANDED[id]=!EXPANDED[id];
+    mem.classList.toggle("expanded",!!EXPANDED[id]);
+    return;
+  }
+  var ht=e.target.closest("#hideTitle");
+  if(ht){
+    HIDECOLLAPSED=!HIDECOLLAPSED;
+    ht.parentElement.classList.toggle("collapsed",HIDECOLLAPSED);
+    return;
+  }
+  var oh=e.target.closest(".org-head");
+  if(oh){
+    var org=oh.parentElement.dataset.org;
+    COLLAPSED[org]=!COLLAPSED[org];
+    oh.parentElement.classList.toggle("collapsed",!!COLLAPSED[org]);
+    return;
+  }
+});
+
+/* header tools */
+document.querySelector(".htools").addEventListener("click",function(e){
+  var b=e.target.closest("[data-act]");
+  if(b)doAct(b.dataset.act,b);
+});
+document.getElementById("search").addEventListener("input",function(e){
+  SEARCH=e.target.value.trim().toLowerCase();
+  renderBoard();
+});
+document.addEventListener("click",function(e){
+  if(!e.target.closest(".printwrap"))
+    document.getElementById("printMenu").classList.remove("open");
+});
+
+/* modals */
+document.getElementById("pasteLoad").addEventListener("click",function(){
+  var txt=document.getElementById("pasteText").value.trim();
+  var msg=document.getElementById("pasteMsg");
+  if(!txt){ msg.textContent="Paste the copied data first."; return; }
+  try{ ingest(JSON.parse(txt)); hide("pasteModal"); }
+  catch(err){ msg.textContent=String(err.message||err); }
+});
+document.getElementById("gotoPaste").addEventListener("click",function(){
+  hide("getdataModal"); doAct("paste");
+});
+document.getElementById("fileInput").addEventListener("change",function(e){
+  var f=e.target.files[0]; if(!f)return;
+  var rd=new FileReader();
+  rd.onload=function(){
+    try{ ingest(JSON.parse(rd.result)); }
+    catch(err){ flash("Could not open file: "+String(err.message||err)); }
+  };
+  rd.readAsText(f);
+  e.target.value="";
+});
+Array.prototype.forEach.call(document.querySelectorAll("[data-close]"),function(b){
+  b.addEventListener("click",function(){ hide(b.dataset.close); });
+});
+Array.prototype.forEach.call(document.querySelectorAll(".modal"),function(m){
+  m.addEventListener("click",function(e){ if(e.target===m)m.classList.add("hidden"); });
+});
+window.addEventListener("keydown",function(e){
+  if(e.key==="Escape")Array.prototype.forEach.call(document.querySelectorAll(".modal"),
+    function(m){ m.classList.add("hidden"); });
+});
+window.addEventListener("afterprint",function(){
+  document.getElementById("printArea").innerHTML="";
+});
+function show(id){ document.getElementById(id).classList.remove("hidden"); }
+function hide(id){ document.getElementById(id).classList.add("hidden"); }
+
+/* ====================== print ============================================= */
+function buildPrintAll(){
+  var orgs=[],oidx={};
+  MODEL.callings.forEach(function(c){
+    if(!(c.org in oidx)){ oidx[c.org]=orgs.length; orgs.push({name:c.org,subs:[],sidx:{}}); }
+    var O=orgs[oidx[c.org]];
+    if(!(c.sub in O.sidx)){ O.sidx[c.sub]=O.subs.length; O.subs.push({name:c.sub,callings:[]}); }
+    O.subs[O.sidx[c.sub]].callings.push(c);
+  });
+  var h="<h1>"+esc(MODEL.unit||"Ward")+" &mdash; Callings</h1>"
+    +"<p class='p-meta'>All callings &middot; "+MODEL.callings.length
+    +" callings &middot; printed "+new Date().toLocaleDateString()+"</p>";
+  orgs.forEach(function(O){
+    h+="<div class='p-org'><h2>"+esc(O.name)+"</h2>";
+    O.subs.forEach(function(S){
+      if(S.name)h+="<h3>"+esc(S.name)+"</h3>";
+      h+="<table><thead><tr><th style='width:34%'>Calling</th><th style='width:30%'>Member</th>"
+        +"<th style='width:22%'>Time in calling</th><th style='width:14%'>Set apart</th>"
+        +"</tr></thead><tbody>";
+      S.callings.forEach(function(c){
+        var cur=membersAt(c.id);
+        var who=cur.length?cur.map(function(m){return esc(m.name);}).join(", ")
+          :"<span class='p-vac'>Vacant</span>";
+        var ten=cur.length?esc(tenureText(cur[0].sustained)||"—"):"";
+        var sa=cur.length&&cur[0].home?(cur[0].setApart?"Yes":"No"):"";
+        h+="<tr><td>"+esc(c.name)+"</td><td>"+who+"</td><td>"+ten+"</td><td>"+sa+"</td></tr>";
+      });
+      h+="</tbody></table>";
+    });
+    h+="</div>";
+  });
+  return h;
+}
+function buildPrintChanges(){
+  var changed=changedCallings();
+  var h="<h1>"+esc(MODEL.unit||"Ward")+" &mdash; Proposed Calling Changes</h1>"
+    +"<p class='p-meta'>Changes as of "+new Date().toLocaleDateString()
+    +" &middot; "+changed.length+" calling(s)</p>";
+  h+="<h2>Changed callings</h2>";
+  if(!changed.length){
+    h+="<p class='p-chg'>No changes yet. Drag members between callings to plan changes.</p>";
+  }else{
+    var byOrg={};
+    changed.forEach(function(c){ (byOrg[c.org]=byOrg[c.org]||[]).push(c); });
+    Object.keys(byOrg).forEach(function(org){
+      h+="<h3>"+esc(org)+"</h3>";
+      byOrg[org].forEach(function(c){
+        var cur=membersAt(c.id);
+        var nowTxt=cur.length?cur.map(function(m){return esc(m.name);}).join(", "):"Vacant";
+        var wasTxt=c.home&&MODEL.members[c.home]?esc(MODEL.members[c.home].name):"Vacant";
+        h+="<div class='p-chg'><b>"+esc(c.name)+"</b> &mdash; was "+wasTxt
+          +" &nbsp;&rarr;&nbsp; now <b>"+nowTxt+"</b></div>";
+      });
+    });
+  }
+  var pool=membersAt("pool");
+  h+="<h2>Names to Consider ("+pool.length+")</h2>";
+  if(!pool.length)h+="<p class='p-chg'>None.</p>";
+  pool.forEach(function(m){
+    var origin=m.home&&MODEL.members[m.home]?"":"";
+    var was="";
+    if(m.home){
+      var hc=MODEL.callings.filter(function(c){return c.id===m.home;})[0];
+      if(hc)was=" (released from "+esc(hc.name)+")";
+    }else was=" (added)";
+    h+="<div class='p-chg'><b>"+esc(m.name)+"</b>"+was+"</div>";
+  });
+  var hid=membersAt("hide");
+  if(hid.length){
+    h+="<h2>Hidden ("+hid.length+")</h2>";
+    hid.forEach(function(m){ h+="<div class='p-chg'>"+esc(m.name)+"</div>"; });
+  }
+  return h;
+}
+function doPrint(kind){
+  if(!MODEL.callings.length){ flash("Load callings data first."); return; }
+  document.getElementById("printArea").innerHTML=
+    kind==="changes"?buildPrintChanges():buildPrintAll();
+  window.print();
+}
+
+/* ====================== save project ====================================== */
+function saveProject(){
+  if(!MODEL.callings.length){ flash("Nothing to save yet."); return; }
+  var blob=new Blob([JSON.stringify(MODEL,null,2)],{type:"application/json"});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement("a");
+  a.href=url;
+  a.download="callings-"+String(MODEL.unit||"ward").replace(/[^a-z0-9]+/gi,"-").toLowerCase()
+    +"-"+new Date().toISOString().slice(0,10)+".json";
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+  flash("Project saved.");
+}
+
+/* ====================== bookmarklet ======================================= */
+(function(){
+  var BM="javascript:(function(){"+bmScrape.toString()+";"+bmDeliver.toString()
+    +";bmDeliver();})();";
+  BM=BM.replace(/\s*\n\s*/g," ");
+  document.getElementById("bookmarklet").href=BM;
+  document.getElementById("bmcode").value=BM;
+})();
+
+/* ====================== demo data ========================================= */
+var DEMO={unit:"Demo Ward (000000)",generated:new Date().toISOString(),source:"demo",
+ organizations:[
+  {name:"Bishopric",subOrgs:[{name:"",callings:[
+    {calling:"Bishop",member:"Anderson, Mark",vacant:false,sustained:"12 Mar 2021",setApart:true},
+    {calling:"Bishopric First Counselor",member:"Brown, David",vacant:false,sustained:"12 Mar 2021",setApart:true},
+    {calling:"Bishopric Second Counselor",member:"Clark, Steven",vacant:false,sustained:"8 Sep 2024",setApart:true},
+    {calling:"Ward Clerk",member:"Davis, Paul",vacant:false,sustained:"5 Jan 2025",setApart:false},
+    {calling:"Ward Executive Secretary",member:"",vacant:true,sustained:"",setApart:false}]}]},
+  {name:"Elders Quorum",subOrgs:[{name:"Elders Quorum Presidency",callings:[
+    {calling:"Elders Quorum President",member:"Evans, Michael",vacant:false,sustained:"2 Feb 2025",setApart:true},
+    {calling:"Elders Quorum First Counselor",member:"Foster, James",vacant:false,sustained:"2 Feb 2025",setApart:true},
+    {calling:"Elders Quorum Secretary",member:"",vacant:true,sustained:"",setApart:false}]},
+   {name:"Ministering",callings:[
+    {calling:"Ministering Coordinator",member:"Gray, Robert",vacant:false,sustained:"19 Jan 2020",setApart:false}]}]},
+  {name:"Relief Society",subOrgs:[{name:"Relief Society Presidency",callings:[
+    {calling:"Relief Society President",member:"Garcia, Maria",vacant:false,sustained:"19 Nov 2022",setApart:true},
+    {calling:"Relief Society First Counselor",member:"Hill, Sarah",vacant:false,sustained:"14 Apr 2024",setApart:true},
+    {calling:"Relief Society Secretary",member:"Adams, Karen",vacant:false,sustained:"14 Apr 2024",setApart:true}]},
+   {name:"Relief Society Teachers",callings:[
+    {calling:"Relief Society Teacher",member:"Irwin, Rachel",vacant:false,sustained:"7 Jul 2018",setApart:false},
+    {calling:"Relief Society Teacher",member:"Jones, Emily",vacant:false,sustained:"7 Jul 2024",setApart:true}]}]},
+  {name:"Primary",subOrgs:[{name:"Primary Presidency",callings:[
+    {calling:"Primary President",member:"King, Laura",vacant:false,sustained:"3 Dec 2023",setApart:true},
+    {calling:"Primary First Counselor",member:"Lee, Angela",vacant:false,sustained:"3 Dec 2023",setApart:true},
+    {calling:"Primary Secretary",member:"",vacant:true,sustained:"",setApart:false}]},
+   {name:"Primary Teachers",callings:[
+    {calling:"Primary Teacher",member:"Moore, Diane",vacant:false,sustained:"21 Apr 2024",setApart:true},
+    {calling:"Primary Teacher",member:"Nelson, Grace",vacant:false,sustained:"21 Apr 2017",setApart:true},
+    {calling:"Nursery Leader",member:"Owens, Beth",vacant:false,sustained:"5 May 2024",setApart:false}]}]},
+  {name:"Young Men",subOrgs:[{name:"Young Men Presidency",callings:[
+    {calling:"Young Men President",member:"Parker, John",vacant:false,sustained:"9 Feb 2025",setApart:true},
+    {calling:"Assistant Young Men President",member:"",vacant:true,sustained:"",setApart:false}]}]},
+  {name:"Sunday School",subOrgs:[{name:"Sunday School Presidency",callings:[
+    {calling:"Sunday School President",member:"Quinn, Mark",vacant:false,sustained:"1 Sep 2024",setApart:true},
+    {calling:"Sunday School Secretary",member:"Reed, Tyler",vacant:false,sustained:"1 Sep 2024",setApart:false}]}]}
+ ]};
+
+/* ====================== start ============================================= */
+load();
+renderAll();
+</script>
+</body>
+</html>
