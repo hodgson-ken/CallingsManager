@@ -41,6 +41,11 @@
     justify-content:center; padding:0; }
   .iconbtn:hover{ background:rgba(255,255,255,.24); }
   .iconbtn.on{ background:#c9762f; border-color:#c9762f; }
+  .iconbtn:disabled{ opacity:.38; cursor:default; }
+  .iconbtn:disabled:hover{ background:rgba(255,255,255,.12); }
+  .iconbtn.ur{ width:auto; min-width:32px; padding:0 6px; gap:3px; }
+  .ur-n{ font-size:10px; font-weight:700; color:rgba(255,255,255,.8); display:none; }
+  .ur-n.vis{ display:inline; }
   .iconbtn svg{ width:16px; height:16px; fill:#fff; }
   .hsearch{ font:inherit; font-size:12.5px; border:1px solid rgba(255,255,255,.2);
     background:rgba(255,255,255,.14); color:#fff; border-radius:6px; padding:6px 9px;
@@ -71,6 +76,8 @@
   .dz-hint{ color:#8a8f97; font-size:12px; font-style:italic; padding:3px 0; }
 
   #columns{ column-width:340px; column-gap:14px; }
+  #columns.cols-3{ column-width:unset; column-count:3; }
+  #columns.cols-4{ column-width:unset; column-count:4; }
   .org{ break-inside:avoid; -webkit-column-break-inside:avoid; display:inline-block;
     width:100%; margin:0 0 14px; border-radius:14px; padding:8px 11px 12px;
     background:var(--bg,#dde2e8); box-shadow:0 2px 8px rgba(0,0,0,.16); }
@@ -218,9 +225,21 @@
       <button class="hbtn" data-act="paste">Paste</button>
       <button class="hbtn" data-act="open">Open</button>
       <button class="hbtn" data-act="save">Save</button>
+      <button class="iconbtn ur" id="undoBtn" data-act="undo" title="Nothing to undo" disabled>
+        <svg viewBox="0 0 24 24"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/></svg>
+        <span class="ur-n" id="undoN"></span>
+      </button>
+      <button class="iconbtn ur" id="redoBtn" data-act="redo" title="Nothing to redo" disabled>
+        <svg viewBox="0 0 24 24"><path d="M18.4 10.6C16.55 8.99 14.15 8 11.5 8c-4.65 0-8.58 3.03-9.96 7.22L3.9 16c1.05-3.19 4.05-5.5 7.6-5.5 1.95 0 3.73.72 5.12 1.88L13 16h9V7l-3.6 3.6z"/></svg>
+        <span class="ur-n" id="redoN"></span>
+      </button>
       <span class="sep"></span>
       <button class="iconbtn" data-act="addmember" title="Add a member">
         <svg viewBox="0 0 24 24"><path d="M15 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm-9 0v3H3v2h3v3h2v-3h3v-2H8v-3Zm9 2c-2.7 0-8 1.3-8 4v2h16v-2c0-2.7-5.3-4-8-4Z"/></svg>
+      </button>
+      <button class="hbtn" data-act="cols" id="colsBtn" title="Column layout">3 col</button>
+      <button class="iconbtn" data-act="collapseall" id="collapseAllBtn" title="Collapse / expand all">
+        <svg viewBox="0 0 24 24"><path d="M4 15h16v-2H4zm0 4h16v-2H4zm0-8h16V9H4zm0-6v2h16V5z"/></svg>
       </button>
       <button class="iconbtn" data-act="time" id="timeBtn" title="Time in calling">
         <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8Zm1-13h-2v6l5 3 1-1.7-4-2.3Z"/></svg>
@@ -339,30 +358,36 @@ function bmDeliver(){
   var data=bmScrape();
   if(!data)return;
   var json=JSON.stringify(data);
-  var w=window.open("","_blank","width=560,height=540");
-  if(!w){alert("Please allow pop-ups for this site, then click the button again.");return;}
-  var d=w.document;
-  d.write("<!doctype html><meta charset=utf-8><title>Ward Callings data</title>"
-    +"<body style='font-family:-apple-system,Segoe UI,Arial,sans-serif;margin:16px;color:#222'>"
-    +"<h3 style='margin:0 0 6px;color:#2f3034'>Ward callings ready</h3>"
-    +"<p style='font-size:13px;color:#555;margin:0 0 10px'>Click <b>Copy</b>, then go to the "
-    +"Ward Callings Manager, choose <b>Paste</b>, and paste.</p>"
-    +"<button id=c style='font:inherit;padding:8px 16px;background:#3f6fb0;color:#fff;"
-    +"border:0;border-radius:7px;font-weight:600;cursor:pointer'>Copy</button> "
-    +"<span id=m style='font-size:13px;color:#1a7f37;font-weight:600'></span>"
-    +"<textarea id=t style='width:100%;height:400px;margin-top:8px;font-size:11px;"
-    +"font-family:ui-monospace,Menlo,monospace'></textarea>");
-  d.close();
-  var t=d.getElementById("t");
-  t.value=json;t.focus();t.select();
-  d.getElementById("c").onclick=function(){
-    t.focus();t.select();
+  /* Inject overlay into current page — works on iPad/Safari without popup permission */
+  var ov=document.createElement("div");
+  ov.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:2147483647;"
+    +"display:flex;align-items:center;justify-content:center;font-family:-apple-system,Segoe UI,Arial,sans-serif;";
+  ov.innerHTML="<div style='background:#fff;border-radius:14px;padding:22px 20px;width:92%;max-width:520px;"
+    +"box-shadow:0 8px 32px rgba(0,0,0,.4);color:#222'>"
+    +"<h3 style='margin:0 0 6px;font-size:18px;color:#2f3034'>Ward callings ready</h3>"
+    +"<p style='font-size:13px;color:#555;margin:0 0 12px'>Tap <b>Copy</b>, then go back to "
+    +"Ward Callings Manager and tap <b>Paste</b>.</p>"
+    +"<button id=_bmc style='font:inherit;padding:10px 20px;background:#3f6fb0;color:#fff;"
+    +"border:0;border-radius:8px;font-weight:700;font-size:15px;cursor:pointer'>Copy</button> "
+    +"<span id=_bmm style='font-size:13px;color:#1a7f37;font-weight:700'></span>"
+    +"<button id=_bmx style='float:right;font:inherit;padding:10px 16px;background:#eee;"
+    +"color:#444;border:0;border-radius:8px;font-size:14px;cursor:pointer'>Close</button>"
+    +"<textarea id=_bmt style='width:100%;height:140px;margin-top:12px;font-size:11px;"
+    +"font-family:ui-monospace,Menlo,monospace;border:1px solid #ccc;border-radius:6px;"
+    +"padding:6px' readonly></textarea></div>";
+  document.body.appendChild(ov);
+  var ta=ov.querySelector("#_bmt");
+  ta.value=json;
+  setTimeout(function(){ta.focus();ta.select();},50);
+  ov.querySelector("#_bmc").onclick=function(){
+    ta.focus();ta.select();
     var ok=false;
-    try{ok=d.execCommand("copy");}catch(e){}
-    if(w.navigator&&w.navigator.clipboard){w.navigator.clipboard.writeText(json);ok=true;}
-    d.getElementById("m").textContent=ok?"Copied!":"Press Ctrl/Cmd+C to copy.";
+    try{ok=document.execCommand("copy");}catch(e){}
+    if(navigator.clipboard){navigator.clipboard.writeText(json).catch(function(){});ok=true;}
+    ov.querySelector("#_bmm").textContent=ok?"Copied!":"Select all + copy manually.";
   };
-  try{if(navigator.clipboard)navigator.clipboard.writeText(json);}catch(e){}
+  ov.querySelector("#_bmx").onclick=function(){ov.remove();};
+  ov.onclick=function(e){if(e.target===ov)ov.remove();};
 }
 
 /* ====================== helpers =========================================== */
@@ -431,6 +456,7 @@ var STORE="wardCallingsBoard.v4";
 var MODEL=null;
 var EXPANDED={},COLLAPSED={},HIDECOLLAPSED=false,DRAG_ID=null,SEARCH="";
 var SEP="␟";
+var UNDO=[],REDO=[],MAX_UNDO=50;
 
 function newModel(){ return {unit:"",loadedAt:"",callings:[],members:{},seq:0}; }
 function buildModel(scraped){
@@ -469,6 +495,38 @@ function callingChanged(c){
 }
 function changedCallings(){ return MODEL.callings.filter(callingChanged); }
 
+/* ====================== undo / redo ======================================= */
+function pushUndo(){
+  UNDO.push(deepCopy(MODEL));
+  if(UNDO.length>MAX_UNDO)UNDO.shift();
+  REDO=[];
+  updateUndoButtons();
+}
+function undoStep(){
+  if(!UNDO.length)return;
+  REDO.push(deepCopy(MODEL));
+  MODEL=UNDO.pop();
+  save(); renderAll(); updateUndoButtons();
+  flash("Undone"+(UNDO.length?" — "+UNDO.length+" more":""));
+}
+function redoStep(){
+  if(!REDO.length)return;
+  UNDO.push(deepCopy(MODEL));
+  MODEL=REDO.pop();
+  save(); renderAll(); updateUndoButtons();
+  flash("Redone"+(REDO.length?" — "+REDO.length+" more":""));
+}
+function updateUndoButtons(){
+  var ub=document.getElementById("undoBtn"),rb=document.getElementById("redoBtn");
+  if(!ub)return;
+  ub.disabled=!UNDO.length; rb.disabled=!REDO.length;
+  ub.title=UNDO.length?"Undo ("+UNDO.length+" step"+(UNDO.length!==1?"s":"")+" remaining)":"Nothing to undo";
+  rb.title=REDO.length?"Redo ("+REDO.length+" step"+(REDO.length!==1?"s":"")+" remaining)":"Nothing to redo";
+  var un=document.getElementById("undoN"),rn=document.getElementById("redoN");
+  if(un){un.textContent=UNDO.length?UNDO.length:"";un.classList.toggle("vis",UNDO.length>0);}
+  if(rn){rn.textContent=REDO.length?REDO.length:"";rn.classList.toggle("vis",REDO.length>0);}
+}
+
 /* ====================== persistence ======================================= */
 function save(){ try{ localStorage.setItem(STORE,JSON.stringify(MODEL)); }catch(e){} }
 function load(){
@@ -491,6 +549,7 @@ function ingest(obj){
   }else{
     throw new Error("This doesn't look like callings data or a saved project.");
   }
+  UNDO=[]; REDO=[]; updateUndoButtons();
   save(); renderAll();
 }
 
@@ -625,8 +684,25 @@ function doAct(act,el){
   }
   else if(act==="open"){ document.getElementById("fileInput").click(); }
   else if(act==="save"){ saveProject(); }
+  else if(act==="undo"){ undoStep(); }
+  else if(act==="redo"){ redoStep(); }
   else if(act==="demo"){ ingest(deepCopy(DEMO)); }
   else if(act==="addmember"){ addMember(); }
+  else if(act==="cols"){
+    var c=document.getElementById("columns"),btn=document.getElementById("colsBtn");
+    if(!c){return;}
+    if(c.classList.contains("cols-3")){c.classList.replace("cols-3","cols-4");btn.textContent="4 col";}
+    else if(c.classList.contains("cols-4")){c.classList.remove("cols-4");btn.textContent="Auto";}
+    else{c.classList.add("cols-3");btn.textContent="3 col";}
+  }
+  else if(act==="collapseall"){
+    var allOrgs=MODEL.callings.map(function(c){return c.org;})
+      .filter(function(o,i,a){return a.indexOf(o)===i;});
+    var anyOpen=allOrgs.some(function(o){return !COLLAPSED[o];});
+    allOrgs.forEach(function(o){COLLAPSED[o]=anyOpen;});
+    document.getElementById("collapseAllBtn").classList.toggle("on",anyOpen);
+    renderBoard();
+  }
   else if(act==="time"){
     document.body.classList.toggle("timeview");
     document.getElementById("timeBtn").classList.toggle("on",
@@ -642,6 +718,7 @@ function addMember(){
   var name=prompt("Name of the member to add (Last, First):","");
   if(name==null)return;
   name=name.trim(); if(!name)return;
+  pushUndo();
   var mid="m"+(MODEL.seq++);
   MODEL.members[mid]={id:mid,name:name,sustained:"",setApart:false,home:null,loc:"pool"};
   save(); renderAll();
@@ -652,6 +729,7 @@ function addCalling(key){
   var name=prompt("Name of the new calling:","");
   if(name==null)return;
   name=name.trim(); if(!name)return;
+  pushUndo();
   var cid=[org,sub,name,"x"+(MODEL.seq++)].join(SEP);
   /* insert after the last calling of this org+sub */
   var lastIdx=-1;
@@ -663,9 +741,24 @@ function addCalling(key){
 }
 function moveMember(mid,loc){
   if(!MODEL.members[mid])return;
+  pushUndo();
   MODEL.members[mid].loc=loc;
   save(); renderAll();
 }
+
+/* drag auto-scroll near screen edges */
+var _scrollRaf=null;
+function _dragScroll(e){
+  var ZONE=80,SPEED=14,y=e.clientY,h=window.innerHeight;
+  if(_scrollRaf){cancelAnimationFrame(_scrollRaf);_scrollRaf=null;}
+  if(y<ZONE){
+    (function tick(){window.scrollBy(0,-SPEED*(1-(y/ZONE)));_scrollRaf=requestAnimationFrame(tick);})();
+  }else if(y>h-ZONE){
+    (function tick(){window.scrollBy(0,SPEED*(1-((h-y)/ZONE)));_scrollRaf=requestAnimationFrame(tick);})();
+  }
+}
+document.addEventListener("dragover",_dragScroll);
+document.addEventListener("dragend",function(){if(_scrollRaf){cancelAnimationFrame(_scrollRaf);_scrollRaf=null;}});
 
 /* drag and drop */
 document.getElementById("board").addEventListener("dragstart",function(e){
@@ -774,6 +867,12 @@ Array.prototype.forEach.call(document.querySelectorAll(".modal"),function(m){
 window.addEventListener("keydown",function(e){
   if(e.key==="Escape")Array.prototype.forEach.call(document.querySelectorAll(".modal"),
     function(m){ m.classList.add("hidden"); });
+  var inText=document.activeElement&&
+    (document.activeElement.tagName==="INPUT"||document.activeElement.tagName==="TEXTAREA");
+  if(!inText&&(e.ctrlKey||e.metaKey)){
+    if(e.key==="z"&&!e.shiftKey){ undoStep(); e.preventDefault(); }
+    else if(e.key==="y"||(e.key==="z"&&e.shiftKey)){ redoStep(); e.preventDefault(); }
+  }
 });
 window.addEventListener("afterprint",function(){
   document.getElementById("printArea").innerHTML="";
