@@ -502,18 +502,50 @@ function pushUndo(){
   REDO=[];
   updateUndoButtons();
 }
+function captureCardPositions(){
+  var pos={};
+  Array.prototype.forEach.call(document.querySelectorAll(".member[data-mid]"),function(el){
+    var r=el.getBoundingClientRect();
+    pos[el.dataset.mid]={x:r.left+r.width/2,y:r.top+r.height/2};
+  });
+  return pos;
+}
+function flipAnimate(oldPos){
+  requestAnimationFrame(function(){
+    Array.prototype.forEach.call(document.querySelectorAll(".member[data-mid]"),function(el){
+      var o=oldPos[el.dataset.mid]; if(!o)return;
+      var r=el.getBoundingClientRect();
+      var dx=o.x-(r.left+r.width/2), dy=o.y-(r.top+r.height/2);
+      if(Math.abs(dx)<2&&Math.abs(dy)<2)return;
+      el.style.transition="none";
+      el.style.transform="translate("+dx+"px,"+dy+"px)";
+      el.style.zIndex="50";
+      el.style.boxShadow="0 8px 24px rgba(0,0,0,.28)";
+      requestAnimationFrame(function(){
+        el.style.transition="transform .38s cubic-bezier(.4,0,.2,1),box-shadow .38s";
+        el.style.transform="";
+        el.style.boxShadow="";
+        setTimeout(function(){ el.style.zIndex=""; el.style.transition=""; },400);
+      });
+    });
+  });
+}
 function undoStep(){
   if(!UNDO.length)return;
+  var oldPos=captureCardPositions();
   REDO.push(deepCopy(MODEL));
   MODEL=UNDO.pop();
   save(); renderAll(); updateUndoButtons();
+  flipAnimate(oldPos);
   flash("Undone"+(UNDO.length?" — "+UNDO.length+" more":""));
 }
 function redoStep(){
   if(!REDO.length)return;
+  var oldPos=captureCardPositions();
   UNDO.push(deepCopy(MODEL));
   MODEL=REDO.pop();
   save(); renderAll(); updateUndoButtons();
+  flipAnimate(oldPos);
   flash("Redone"+(REDO.length?" — "+REDO.length+" more":""));
 }
 function updateUndoButtons(){
