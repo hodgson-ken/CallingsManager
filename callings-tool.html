@@ -522,10 +522,10 @@ function flipAnimate(oldPos){
       el.style.zIndex="50";
       el.style.boxShadow="0 8px 24px rgba(0,0,0,.28)";
       requestAnimationFrame(function(){
-        el.style.transition="transform .38s cubic-bezier(.4,0,.2,1),box-shadow .38s";
+        el.style.transition="transform .57s cubic-bezier(.4,0,.2,1),box-shadow .57s";
         el.style.transform="";
         el.style.boxShadow="";
-        setTimeout(function(){ el.style.zIndex=""; el.style.transition=""; },400);
+        setTimeout(function(){ el.style.zIndex=""; el.style.transition=""; },600);
       });
     });
   });
