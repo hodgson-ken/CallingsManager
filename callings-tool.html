@@ -253,6 +253,26 @@
     #printArea{ display:block; }
     .p-org{ break-inside:avoid; }
   }
+  .modalbox.changesbox{ width:980px; }
+  .cv-title{ font-family:var(--fjalla); font-weight:400; color:#2f3034; font-size:22px; margin:0 0 2px; }
+  .cv-meta{ color:#666; font-size:12px; margin:0 0 12px !important; }
+  .cv-empty{ color:#666; font-size:14px; padding:18px 0; }
+  .cv-org{ break-inside:avoid; background:var(--bg,#e7e8ea); border-radius:12px;
+    padding:9px 11px 11px; margin:0 0 11px; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .cv-org h2{ font-family:var(--lato); font-weight:700; font-size:17px; color:#33363c;
+    text-align:center; margin:0 0 7px; border:0; padding:0; }
+  .cv-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(165px,1fr)); gap:7px; }
+  .cv-card{ break-inside:avoid; background:#fff; border:1px solid #b9bec6; border-radius:9px;
+    padding:7px 8px; text-align:center; }
+  .cv-calling{ font-size:11px; font-weight:700; color:#3b4048; line-height:1.2; }
+  .cv-sub{ font-size:10px; color:#7b818a; margin-top:1px; }
+  .cv-was{ font-size:12px; color:#777; margin-top:6px; }
+  .cv-arrow{ font-size:11px; color:#777; line-height:1.1; }
+  .cv-now{ font-size:13px; font-weight:800; color:#1f2226; }
+  .cv-now.cv-vacant{ font-weight:400; font-style:italic; color:#b3261e; }
+  .cv-chips{ display:flex; flex-wrap:wrap; gap:6px; justify-content:center; }
+  .cv-chip{ background:#fff; border:1px solid #b9bec6; border-radius:7px; padding:3px 8px; font-size:12px; }
+  .cv-chip small{ color:#7b818a; }
   #printArea h1{ font-family:var(--fjalla); font-weight:400; color:#2f3034;
     font-size:22px; margin:0 0 2px; }
   #printArea .p-meta{ color:#666; font-size:12px; margin:0 0 12px; }
@@ -279,6 +299,7 @@
       <button class="hbtn" data-act="paste">Paste</button>
       <button class="hbtn" data-act="open">Open</button>
       <button class="hbtn" data-act="save">Save</button>
+      <button class="hbtn" data-act="changes">Changes</button>
       <button class="iconbtn ur" id="undoBtn" data-act="undo" title="Nothing to undo" disabled>
         <svg viewBox="0 0 24 24"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/></svg>
         <span class="ur-n" id="undoN"></span>
@@ -378,6 +399,16 @@
     <div class="mbtnrow">
       <button id="pasteLoad">Load data</button>
       <button class="ghost" data-close="pasteModal">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="changesModal" class="modal hidden">
+  <div class="modalbox changesbox">
+    <div id="changesBody"></div>
+    <div class="mbtnrow">
+      <button id="changesPrint">Print</button>
+      <button class="ghost" data-close="changesModal">Close</button>
     </div>
   </div>
 </div>
@@ -588,7 +619,7 @@ function orgColor(name,i){
 /* ====================== state / model ===================================== */
 var STORE="wardCallingsBoard.v4";
 var MODEL=null;
-var AVAIL_F={gender:"",min:"",max:""},AVAIL_COLLAPSED=false;
+var AVAIL_F={gender:"",min:"",max:""},AVAIL_COLLAPSED=true;
 var EXPANDED={},COLLAPSED={},HIDECOLLAPSED=false,DRAG_ID=null,SEARCH="";
 var SEP="␟";
 var UNDO=[],REDO=[],MAX_UNDO=50;
@@ -897,6 +928,7 @@ function doAct(act,el){
   }
   else if(act==="open"){ document.getElementById("fileInput").click(); }
   else if(act==="save"){ saveProject(); }
+  else if(act==="changes"){ showChanges(); }
   else if(act==="undo"){ undoStep(); }
   else if(act==="redo"){ redoStep(); }
   else if(act==="demo"){ ingest(deepCopy(DEMO)); }
@@ -1102,6 +1134,7 @@ window.addEventListener("keydown",function(e){
 window.addEventListener("afterprint",function(){
   document.getElementById("printArea").innerHTML="";
 });
+document.getElementById("changesPrint").addEventListener("click",function(){ doPrint("changes"); });
 function show(id){ document.getElementById(id).classList.remove("hidden"); }
 function hide(id){ document.getElementById(id).classList.add("hidden"); }
 
@@ -1138,46 +1171,56 @@ function buildPrintAll(){
   });
   return h;
 }
-function buildPrintChanges(){
+function buildChangesBoard(){
   var changed=changedCallings();
-  var h="<h1>"+esc(MODEL.unit||"Ward")+" &mdash; Proposed Calling Changes</h1>"
-    +"<p class='p-meta'>Changes as of "+new Date().toLocaleDateString()
-    +" &middot; "+changed.length+" calling(s)</p>";
-  h+="<h2>Changed callings</h2>";
+  var orgNames=MODEL.callings.map(function(c){return c.org;})
+    .filter(function(o,i,a){return a.indexOf(o)===i;});
+  var h="";
   if(!changed.length){
-    h+="<p class='p-chg'>No changes yet. Drag members between callings to plan changes.</p>";
-  }else{
-    var byOrg={};
-    changed.forEach(function(c){ (byOrg[c.org]=byOrg[c.org]||[]).push(c); });
-    Object.keys(byOrg).forEach(function(org){
-      h+="<h3>"+esc(org)+"</h3>";
-      byOrg[org].forEach(function(c){
-        var cur=membersAt(c.id);
-        var nowTxt=cur.length?cur.map(function(m){return esc(m.name);}).join(", "):"Vacant";
-        var wasTxt=c.home&&MODEL.members[c.home]?esc(MODEL.members[c.home].name):"Vacant";
-        h+="<div class='p-chg'><b>"+esc(c.name)+"</b> &mdash; was "+wasTxt
-          +" &nbsp;&rarr;&nbsp; now <b>"+nowTxt+"</b></div>";
-      });
+    h+="<p class='cv-empty'>No changes yet. Drag members between callings to plan changes.</p>";
+  }
+  orgNames.forEach(function(org,i){
+    var list=changed.filter(function(c){return c.org===org;});
+    if(!list.length)return;
+    h+="<section class='cv-org' style='--bg:"+orgColor(org,i)+"'><h2>"+esc(org)+"</h2><div class='cv-grid'>";
+    list.forEach(function(c){
+      var cur=membersAt(c.id);
+      var was=c.home&&MODEL.members[c.home]?MODEL.members[c.home].name:"";
+      h+="<div class='cv-card'><div class='cv-calling'>"+esc(c.name)+"</div>"
+        +(c.sub?"<div class='cv-sub'>"+esc(c.sub)+"</div>":"")
+        +"<div class='cv-was'>"+(was?"<s>"+esc(was)+"</s>":"Was vacant")+"</div>"
+        +"<div class='cv-arrow'>&darr;</div>"
+        +(cur.length?cur.map(function(m){return "<div class='cv-now'>"+esc(m.name)+"</div>";}).join("")
+          :"<div class='cv-now cv-vacant'>Vacant</div>")
+        +"</div>";
     });
-  }
-  var pool=membersAt("pool");
-  h+="<h2>Names to Consider ("+pool.length+")</h2>";
-  if(!pool.length)h+="<p class='p-chg'>None.</p>";
-  pool.forEach(function(m){
-    var origin=m.home&&MODEL.members[m.home]?"":"";
-    var was="";
-    if(m.home){
-      var hc=MODEL.callings.filter(function(c){return c.id===m.home;})[0];
-      if(hc)was=" (released from "+esc(hc.name)+")";
-    }else was=" (added)";
-    h+="<div class='p-chg'><b>"+esc(m.name)+"</b>"+was+"</div>";
+    h+="</div></section>";
   });
-  var hid=membersAt("hide");
-  if(hid.length){
-    h+="<h2>Hidden ("+hid.length+")</h2>";
-    hid.forEach(function(m){ h+="<div class='p-chg'>"+esc(m.name)+"</div>"; });
-  }
+  var extras=[["Names to Consider",membersAt("pool")],["Hidden",membersAt("hide")]];
+  extras.forEach(function(x){
+    if(!x[1].length)return;
+    h+="<section class='cv-org cv-extra'><h2>"+x[0]+"</h2><div class='cv-chips'>"
+      +x[1].map(function(m){
+        var hc=m.home?MODEL.callings.filter(function(c){return c.id===m.home;})[0]:null;
+        return "<span class='cv-chip'><b>"+esc(m.name)+"</b>"
+          +(hc?" <small>released from "+esc(hc.name)+"</small>":"")+"</span>";
+      }).join("")+"</div></section>";
+  });
   return h;
+}
+function changesHeading(){
+  var n=changedCallings().length;
+  return "<h1 class='cv-title'>"+esc(MODEL.unit||"Ward")+" &mdash; Proposed Calling Changes</h1>"
+    +"<p class='cv-meta'>As of "+esc(new Date().toLocaleDateString())+" &middot; "+n
+    +" calling"+(n===1?"":"s")+" changed</p>";
+}
+function buildPrintChanges(){
+  return changesHeading()+buildChangesBoard();
+}
+function showChanges(){
+  if(!MODEL.callings.length){ flash("Load callings data first."); return; }
+  document.getElementById("changesBody").innerHTML=changesHeading()+buildChangesBoard();
+  show("changesModal");
 }
 function doPrint(kind){
   if(!MODEL.callings.length){ flash("Load callings data first."); return; }
