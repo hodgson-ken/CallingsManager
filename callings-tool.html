@@ -72,6 +72,22 @@
   .pool{ background:#e7e8ea; border:1px solid #d2d4d8; }
   .hide{ background:#d7d8da; border:1px solid #c6c7ca; }
   .hide.collapsed .dz-body{ display:none; }
+  .avail{ background:#e3e9ee; border:1px solid #cdd6de; }
+  .avail.collapsed .dz-body{ display:none; }
+  #availTitle{ cursor:pointer; }
+  #availScroll{ max-height:320px; overflow-y:auto; }
+  #availList{ column-width:190px; column-gap:7px; min-height:30px; }
+  #availList .member{ break-inside:avoid; -webkit-column-break-inside:avoid; margin:0 0 5px; }
+  #availList .mname{ display:flex; justify-content:space-between; align-items:baseline;
+    gap:8px; text-align:left; }
+  #availList .mmeta{ font-variant-numeric:tabular-nums; }
+  .avail{ position:relative; }
+  .dz-caret{ position:absolute; right:14px; top:15px; font-size:11px; color:rgba(0,0,0,.42); transition:transform .15s; }
+  .avail.collapsed .dz-caret{ transform:rotate(-90deg); }
+  .availfilters{ display:flex; flex-wrap:wrap; gap:10px; align-items:center;
+    margin:0 0 8px; font-size:12px; color:#5a5f67; }
+  .availfilters input{ width:58px; margin-left:3px; }
+  .member .mmeta{ font-weight:400; font-size:10px; color:#7b818a; white-space:nowrap; }
   .members-row{ display:flex; flex-wrap:wrap; gap:7px; min-height:30px; }
   .dz-hint{ color:#8a8f97; font-size:12px; font-style:italic; padding:3px 0; }
 
@@ -94,9 +110,14 @@
     margin:8px 0 0; }
   .sub-title{ font-family:var(--lato); font-weight:700; font-size:15px;
     color:#41454c; text-align:center; margin:1px 0 6px; }
-  .callings{ display:flex; flex-wrap:wrap; gap:6px; }
+  .sub{ container-type:inline-size; }
+  .callings{ display:grid; grid-template-columns:repeat(auto-fill,minmax(min(112px,100%),1fr));
+    gap:6px; align-items:start; }
 
-  .calling{ flex:1 1 90px; min-width:90px; max-width:165px;
+  @container (min-width:230px){
+    .calling:has(.member.expanded){ grid-column:span 2; }
+  }
+  .calling{ min-width:0;
     background:rgba(255,255,255,.34); border:1px solid rgba(0,0,0,.07);
     border-radius:11px; padding:5px; position:relative; }
   .calling.dragover{ outline:2px dashed var(--accent); outline-offset:1px; }
@@ -115,15 +136,16 @@
   .member:active{ cursor:grabbing; }
   .member .mrow{ display:flex; align-items:center; gap:4px; }
   .member .mname{ flex:1; text-align:center; font-weight:700; font-size:11.5px;
-    color:#23262b; overflow-wrap:anywhere; }
+    color:#23262b; min-width:0; overflow-wrap:break-word; }
   .member .chev{ color:#aab0ba; font-size:9px; transition:transform .15s; }
   .member.expanded .chev{ transform:rotate(180deg); }
   .member.displaced{ border-color:var(--good); }
   .member .mdetail{ display:none; margin-top:5px; padding-top:5px;
     border-top:1px solid #ebedf0; font-size:10.5px; color:#5a5f67; }
   .member.expanded .mdetail{ display:block; }
-  .member .mdetail .d{ display:flex; justify-content:space-between; gap:6px; padding:1px 0; }
-  .member .mbtns{ display:flex; gap:5px; margin-top:5px; }
+  .member .mdetail .d{ display:flex; flex-wrap:wrap; justify-content:space-between; gap:0 6px; padding:1px 0; }
+  .member .mdetail .d>span:last-child{ margin-left:auto; text-align:right; }
+  .member .mbtns{ display:flex; flex-wrap:wrap; gap:5px; margin-top:5px; }
   .member .mbtns button{ flex:1; font-size:10px; font-weight:700; border-radius:5px;
     border:1px solid #c4cad3; background:#f4f5f7; color:#444; padding:3px 4px; }
   .member .mbtns button:hover{ background:#e7e9ec; }
@@ -148,7 +170,7 @@
   body.timeview .timelegend{ display:flex; }
   .timelegend .sw{ width:22px; height:13px; border:1px solid rgba(0,0,0,.12); }
 
-  .add-calling{ flex:0 0 auto; align-self:center; background:rgba(255,255,255,.55);
+  .add-calling{ justify-self:start; align-self:center; background:rgba(255,255,255,.55);
     border:1px dashed #aeb4bd; border-radius:9px; color:#6a7079; font-weight:700;
     font-size:15px; width:26px; height:30px; line-height:1; }
   .add-calling:hover{ background:#fff; color:var(--accent); }
@@ -179,6 +201,38 @@
   code{ background:#eef0f3; padding:1px 5px; border-radius:4px; font-size:12px; }
   .bm{ display:inline-block; background:var(--accent); color:#fff; text-decoration:none;
     font-weight:700; padding:10px 18px; border-radius:8px; cursor:grab; }
+  .gd-label{ font-size:11px; font-weight:800; letter-spacing:.06em; text-transform:uppercase;
+    color:#8a8f97; margin:15px 0 5px; }
+  .gd-step{ display:flex; gap:10px; margin:9px 0; font-size:14px; color:#33363c; }
+  .gd-step>div{ flex:1; min-width:0; }
+  .gd-n{ flex:0 0 24px; height:24px; border-radius:50%; background:var(--accent); color:#fff;
+    font-weight:800; font-size:13px; display:flex; align-items:center; justify-content:center; }
+  .gd-small{ font-size:12px !important; color:#8a8f97 !important; }
+  .gd-bmline{ margin:8px 0 !important; }
+  .gd-open{ color:var(--accent); font-weight:700; font-size:14px; }
+  .modalbox kbd{ font:600 12px var(--lato,sans-serif); background:#eef0f3; border:1px solid #d3d7dd;
+    border-radius:4px; padding:0 5px; white-space:nowrap; }
+  .dragdemo{ position:relative; height:112px; border:1px solid #d9dce1; border-radius:9px;
+    overflow:hidden; background:#fafbfc; }
+  .dd-bar{ height:34px; background:#e9ebef; border-bottom:1px solid #d9dce1; display:flex;
+    align-items:center; gap:5px; padding:0 10px; }
+  .dd-bar i{ width:8px; height:8px; border-radius:50%; background:#c5c9d0; }
+  .dd-slot{ margin-left:12px; width:164px; height:24px; border:1.5px dashed var(--accent);
+    border-radius:6px; animation:ddSlot 3.6s infinite; }
+  .dd-chip{ position:absolute; left:17px; top:69px; display:flex; align-items:center; gap:4px;
+    width:164px; height:26px; padding-left:9px; box-sizing:border-box; background:var(--accent);
+    color:#fff; border-radius:6px; font-size:12px; font-weight:700; white-space:nowrap;
+    animation:ddDrag 3.6s infinite; }
+  .dd-chip svg{ position:absolute; right:12px; top:11px; animation:ddCursor 3.6s infinite; }
+  @keyframes ddDrag{ 0%,15%{ transform:translate(0,0) rotate(0); opacity:1; }
+    22%{ transform:translate(14px,-3px) rotate(-2deg); }
+    65%{ transform:translate(44px,-65px) rotate(-2deg); opacity:1; }
+    74%,92%{ transform:translate(44px,-65px) rotate(0); opacity:1; }
+    100%{ transform:translate(44px,-65px); opacity:0; } }
+  @keyframes ddCursor{ 0%,70%{ opacity:1; transform:scale(1); } 15%,65%{ transform:scale(.88); }
+    78%,100%{ opacity:0; } }
+  @keyframes ddSlot{ 0%,60%{ opacity:.5; } 66%,92%{ opacity:1; } 100%{ opacity:.5; } }
+  @media (prefers-reduced-motion:reduce){ .dd-chip,.dd-chip svg,.dd-slot{ animation:none; } }
   details summary{ cursor:pointer; color:var(--accent); font-weight:700; font-size:13px; }
   .mbtnrow{ display:flex; gap:8px; margin-top:16px; flex-wrap:wrap; }
   .mbtnrow button{ font-weight:700; border-radius:7px; padding:9px 15px;
@@ -265,26 +319,51 @@
 <div id="getdataModal" class="modal hidden">
   <div class="modalbox">
     <h3>Get your ward's callings</h3>
-    <p>The Church retired callingmanager.com's old import link. This grabs the data
-    straight off the LCR page instead &mdash; nothing is uploaded anywhere.</p>
-    <p style="font-weight:700;color:#33363c;margin-top:14px">1. Add the grab button (one time)</p>
-    <p>Drag this onto your browser's bookmarks bar:</p>
-    <p style="margin:10px 0"><a class="bm" id="bookmarklet" href="#">&#128229; Grab Ward Callings</a></p>
+    <p>Your data stays in your browser. Nothing is uploaded.</p>
+
+    <div class="gd-label">First time only</div>
+    <div class="gd-step"><span class="gd-n">1</span><div>
+      <b>Show your bookmarks bar.</b>
+      <p>Press <kbd>&#8984; Shift B</kbd> in Chrome (<kbd>Ctrl Shift B</kbd> on Windows).
+      In Safari, choose View &rarr; Show Favorites Bar.</p>
+    </div></div>
+    <div class="gd-step"><span class="gd-n">2</span><div>
+      <b>Drag this blue button up to the bar.</b>
+      <p class="gd-bmline"><a class="bm" id="bookmarklet" href="#">&#128229; Grab Ward Callings</a></p>
+      <div class="dragdemo" aria-hidden="true">
+        <div class="dd-bar"><i></i><i></i><i></i><span class="dd-slot"></span></div>
+        <div class="dd-chip">&#128229; Grab Ward Callings
+          <svg viewBox="0 0 16 22" width="15" height="21"><path d="M1 1v16l4.4-3.7 2.9 6.9 3-1.3-2.9-6.7H14z" fill="#fff" stroke="#222" stroke-width="1.3" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+      <p class="gd-small">Have an older one? Delete it first.</p>
+    </div></div>
+
+    <div class="gd-label">Every time</div>
+    <div class="gd-step"><span class="gd-n">3</span><div>
+      <b>Open Callings By Organization in LCR.</b>
+      <p class="gd-bmline"><a class="gd-open" href="https://lcr.churchofjesuschrist.org/mlt/orgs?lang=eng" target="_blank" rel="noopener">Open LCR &#8599;</a></p>
+      <p>Sign in if asked, and wait for the names to appear.</p>
+    </div></div>
+    <div class="gd-step"><span class="gd-n">4</span><div>
+      <b>Click Grab Ward Callings in your bookmarks bar.</b>
+      <p>Wait a few seconds, then come back to this tab. Your board will be ready.</p>
+    </div></div>
+
     <details>
-      <summary>Can't drag it? Add it manually</summary>
-      <p>Make a new bookmark and paste this as its URL:</p>
+      <summary>On iPad, or can't drag it?</summary>
+      <ol>
+        <li>Bookmark this page.</li>
+        <li>Copy all of the text below.</li>
+        <li>Edit the new bookmark: name it <b>Grab Ward Callings</b> and replace its address with what you copied.</li>
+      </ol>
       <textarea id="bmcode" readonly rows="3" onclick="this.select()"></textarea>
     </details>
-    <p style="font-weight:700;color:#33363c;margin-top:14px">2. Pull the data</p>
-    <ol>
-      <li>Sign in to <code>lcr.churchofjesuschrist.org</code>.</li>
-      <li>Open <b>Callings &rarr; Organizations</b> and let it finish loading.</li>
-      <li>Click your <b>Grab Ward Callings</b> bookmark, then click <b>Copy</b>.</li>
-      <li>Come back, hit <b>Paste data</b> below, and paste it in.</li>
-    </ol>
+    <p id="localNote" class="gd-small" style="display:none">Using a copy saved on your computer?
+    The bookmark shows a <b>Copy</b> button. Click it, come back, and choose <b>Paste data</b>.</p>
     <div class="mbtnrow">
-      <button id="gotoPaste">Paste data now</button>
       <button class="ghost" data-close="getdataModal">Close</button>
+      <button class="ghost" id="gotoPaste">Paste data instead</button>
     </div>
   </div>
 </div>
@@ -313,7 +392,7 @@
 function bmScrape(){
   var H=location.host||"";
   if(H.indexOf("lcr.churchofjesuschrist.org")<0){
-    alert("Open the LCR Organizations page first, then click this button:\n\n"
+    alert("Open the LCR Callings By Organization page first, then click this button:\n\n"
       +"https://lcr.churchofjesuschrist.org/mlt/orgs?lang=eng");
     return null;
   }
@@ -347,8 +426,8 @@ function bmScrape(){
     }
   }
   if(!orgs.length){
-    alert("No calling tables were found.\n\nMake sure you are on the LCR Organizations page "
-      +"(Callings > Organizations) and that it has fully loaded, then try again.");
+    alert("No calling tables were found.\n\nMake sure you are on the LCR Callings By Organization page "
+      +"and that it has fully loaded, then try again.");
     return null;
   }
   return {unit:unit,generated:new Date().toISOString(),
@@ -357,7 +436,61 @@ function bmScrape(){
 function bmDeliver(){
   var data=bmScrape();
   if(!data)return;
+  var note=document.createElement("div");
+  note.textContent="Collecting members without callings...";
+  note.style.cssText="position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:2147483647;"
+    +"background:#2f3034;color:#fff;padding:10px 18px;border-radius:9px;font:600 14px sans-serif;";
+  document.body.appendChild(note);
+  var f=document.createElement("iframe");
+  f.style.cssText="position:fixed;left:-9999px;top:0;width:1200px;height:800px;";
+  f.src="/mlt/report/member-callings?tab=without-callings&lang=eng";
+  document.body.appendChild(f);
+  var tries=0,last=0;
+  /* Cells can hold a responsive label before the value. */
+  function lastText(c){
+    if(!c)return "";
+    var w=c.ownerDocument.createTreeWalker(c,4),n,v="";
+    while((n=w.nextNode())){if(n.nodeValue.trim())v=n.nodeValue.trim();}
+    return v;
+  }
+  function readRows(){
+    var d;
+    try{d=f.contentDocument;}catch(e){return null;}
+    if(!d)return null;
+    var ts=d.querySelectorAll("table");
+    for(var i=0;i<ts.length;i++){
+      var h="",hs=ts[i].querySelectorAll("thead th");
+      for(var j=0;j<hs.length;j++)h+=" "+hs[j].textContent;
+      if(/gender/i.test(h)&&!/calling/i.test(h))return ts[i].querySelectorAll("tbody tr");
+    }
+    return null;
+  }
+  function poll(){
+    var rows=readRows(),n=rows?rows.length:0;
+    if(n&&n===last){
+      var out=[];
+      for(var i=0;i<n;i++){
+        var c=rows[i].children;
+        var nm=lastText(c[1]);
+        if(nm)out.push({name:nm,gender:lastText(c[2]),age:lastText(c[3])});
+      }
+      data.withoutCallings=out;
+      f.remove();note.remove();send();
+    }else if(++tries<60){
+      last=n;setTimeout(poll,250);
+    }else{
+      data.withoutCallingsFailed=true;
+      f.remove();note.remove();send();
+    }
+  }
+  poll();
+  function send(){
   var json=JSON.stringify(data);
+  var TOOL="__TOOL_URL__";
+  if(/^https?:/.test(TOOL)){
+    location.href=TOOL+"#import="+encodeURIComponent(json);
+    return;
+  }
   /* Inject overlay into current page — works on iPad/Safari without popup permission */
   var ov=document.createElement("div");
   ov.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:2147483647;"
@@ -388,6 +521,7 @@ function bmDeliver(){
   };
   ov.querySelector("#_bmx").onclick=function(){ov.remove();};
   ov.onclick=function(e){if(e.target===ov)ov.remove();};
+  }
 }
 
 /* ====================== helpers =========================================== */
@@ -454,6 +588,7 @@ function orgColor(name,i){
 /* ====================== state / model ===================================== */
 var STORE="wardCallingsBoard.v4";
 var MODEL=null;
+var AVAIL_F={gender:"",min:"",max:""},AVAIL_COLLAPSED=false;
 var EXPANDED={},COLLAPSED={},HIDECOLLAPSED=false,DRAG_ID=null,SEARCH="";
 var SEP="␟";
 var UNDO=[],REDO=[],MAX_UNDO=50;
@@ -481,6 +616,14 @@ function buildModel(scraped){
       });
     });
   });
+  if(scraped.withoutCallings){
+    M.hasAvail=true;
+    scraped.withoutCallings.forEach(function(a){
+      var mid="m"+(M.seq++);
+      M.members[mid]={id:mid,name:a.name,sustained:"",setApart:false,home:null,loc:"avail",
+        gender:a.gender||"",age:a.age||""};
+    });
+  }
   return M;
 }
 function membersAt(loc){
@@ -574,7 +717,10 @@ function load(){
 function ingest(obj){
   if(obj&&obj.organizations){
     MODEL=buildModel(obj);
-    flash("Loaded "+MODEL.callings.length+" callings.");
+    flash(obj.withoutCallingsFailed
+      ?"Loaded callings, but couldn't get members without callings."
+      :"Loaded "+MODEL.callings.length+" callings"
+        +(MODEL.hasAvail?" and "+membersAt("avail").length+" members without callings.":"."));
   }else if(obj&&obj.callings&&obj.members){
     MODEL=obj; MODEL.seq=MODEL.seq||0;
     flash("Project opened.");
@@ -610,7 +756,8 @@ function memberCard(m){
   var bucket=tenureBucket(m.sustained);
   var displaced=(m.home&&m.loc!==m.home)||(!m.home);
   var cls="member in-calling-"+bucket+(EXPANDED[m.id]?" expanded":"")
-    +(displaced&&m.loc!==m.home?" displaced":"");
+    +(displaced&&m.loc!==m.home&&m.loc!=="avail"?" displaced":"");
+  var meta=(m.gender||m.age)?(m.gender+" "+m.age).trim():"";
   var det="<div class='mdetail'>"
     +"<div class='d'><span>Sustained</span><span>"+esc(m.sustained||"—")+"</span></div>"
     +"<div class='d'><span>Time in calling</span><span>"+esc(tenureText(m.sustained)||"—")+"</span></div>"
@@ -620,7 +767,8 @@ function memberCard(m){
     +"<div class='mbtns'><button data-rel='"+esc(m.id)+"'>To Names</button>"
     +"<button data-hide='"+esc(m.id)+"'>Hide</button></div></div>";
   return "<div class='"+cls+"' draggable='true' data-mid='"+esc(m.id)+"'>"
-    +"<div class='mrow'><span class='mname'>"+esc(m.name)+"</span>"
+    +"<div class='mrow'><span class='mname'>"+esc(m.name)
+    +(meta?" <span class='mmeta'>"+esc(meta)+"</span>":"")+"</span>"
     +"<span class='chev'>&#9660;</span></div>"+det+"</div>";
 }
 function callingCard(c){
@@ -663,6 +811,21 @@ function renderBoard(){
        +"Drag a name onto any calling to propose them.</div>")
     +"</div></div></div>";
 
+  /* members without callings */
+  if(MODEL.hasAvail){
+    html+="<div class='dropzone avail"+(AVAIL_COLLAPSED?" collapsed":"")+"' data-loc='avail'>"
+      +"<div class='dz-title' id='availTitle'>Members Without Callings "
+      +"<span class='count' id='availCount'></span><span class='dz-caret'>&#9660;</span></div>"
+      +"<div class='dz-body'><div class='availfilters'>"
+      +"<select data-avail='gender' aria-label='Gender'>"
+      +"<option value=''>All</option>"
+      +"<option value='F'"+(AVAIL_F.gender==="F"?" selected":"")+">Women</option>"
+      +"<option value='M'"+(AVAIL_F.gender==="M"?" selected":"")+">Men</option></select>"
+      +"<label>Age <input type='number' min='0' data-avail='min' placeholder='min' value='"+esc(AVAIL_F.min)+"'></label>"
+      +"<label>to <input type='number' min='0' data-avail='max' placeholder='max' value='"+esc(AVAIL_F.max)+"'></label>"
+      +"</div><div id='availScroll'><div id='availList'></div></div></div></div>";
+  }
+
   /* time legend */
   html+="<div class='timelegend'>Time in calling: &nbsp;<span class='sw' style='background:#e9f1e4'></span>"
     +"<span class='sw' style='background:#f5edc6'></span>"
@@ -704,6 +867,24 @@ function renderBoard(){
     +"</div></div></div>";
 
   board.innerHTML=html;
+  renderAvailList();
+}
+function renderAvailList(){
+  var list=document.getElementById("availList");
+  if(!list)return;
+  var all=membersAt("avail");
+  var min=parseInt(AVAIL_F.min,10),max=parseInt(AVAIL_F.max,10);
+  var shown=all.filter(function(m){
+    var age=parseInt(m.age,10);
+    if(AVAIL_F.gender&&m.gender.charAt(0).toUpperCase()!==AVAIL_F.gender)return false;
+    if(!isNaN(min)&&!(age>=min))return false;
+    if(!isNaN(max)&&!(age<=max))return false;
+    return !SEARCH||matchSearch(m.name);
+  });
+  list.innerHTML=shown.length?shown.map(memberCard).join("")
+    :"<div class='dz-hint'>No members match these filters.</div>";
+  document.getElementById("availCount").textContent=
+    shown.length===all.length?all.length:shown.length+" of "+all.length;
 }
 
 /* ====================== interactions ====================================== */
@@ -792,6 +973,13 @@ function _dragScroll(e){
 document.addEventListener("dragover",_dragScroll);
 document.addEventListener("dragend",function(){if(_scrollRaf){cancelAnimationFrame(_scrollRaf);_scrollRaf=null;}});
 
+document.getElementById("board").addEventListener("input",function(e){
+  var k=e.target.dataset&&e.target.dataset.avail;
+  if(!k)return;
+  AVAIL_F[k]=e.target.value;
+  renderAvailList();
+});
+
 /* drag and drop */
 document.getElementById("board").addEventListener("dragstart",function(e){
   var m=e.target.closest(".member");
@@ -831,6 +1019,11 @@ document.getElementById("board").addEventListener("click",function(e){
   if(rel){ moveMember(rel.dataset.rel,"pool"); return; }
   var hd=e.target.closest("[data-hide]");
   if(hd){ moveMember(hd.dataset.hide,"hide"); return; }
+  if(e.target.closest("#availTitle")){
+    AVAIL_COLLAPSED=!AVAIL_COLLAPSED;
+    e.target.closest(".avail").classList.toggle("collapsed",AVAIL_COLLAPSED);
+    return;
+  }
   var ac=e.target.closest("[data-addcalling]");
   if(ac){ addCalling(ac.dataset.addcalling); return; }
   var mem=e.target.closest(".member");
@@ -1012,6 +1205,10 @@ function saveProject(){
   var BM="javascript:(function(){"+bmScrape.toString()+";"+bmDeliver.toString()
     +";bmDeliver();})();";
   BM=BM.replace(/\s*\n\s*/g," ");
+  if(/^https?:$/.test(location.protocol)){
+    BM=BM.replace("__TOOL_URL__",location.origin+location.pathname);
+  }
+  if(location.protocol==="file:")document.getElementById("localNote").style.display="";
   document.getElementById("bookmarklet").href=BM;
   document.getElementById("bmcode").value=BM;
 })();
@@ -1052,11 +1249,58 @@ var DEMO={unit:"Demo Ward (000000)",generated:new Date().toISOString(),source:"d
   {name:"Sunday School",subOrgs:[{name:"Sunday School Presidency",callings:[
     {calling:"Sunday School President",member:"Quinn, Mark",vacant:false,sustained:"1 Sep 2024",setApart:true},
     {calling:"Sunday School Secretary",member:"Reed, Tyler",vacant:false,sustained:"1 Sep 2024",setApart:false}]}]}
- ]};
+ ],
+ withoutCallings:[
+  {name:"Stone, Amy",gender:"F",age:"34"},{name:"Turner, Ben",gender:"M",age:"52"},
+  {name:"Underwood, Cara",gender:"F",age:"67"},{name:"Vega, Dan",gender:"M",age:"19"},
+  {name:"White, Ella",gender:"F",age:"23"},{name:"Young, Frank",gender:"M",age:"41"}]};
+
+/* ====================== hash import ======================================= */
+function importFromHash(){
+  var PREFIX="#import=",h=location.hash;
+  if(h.indexOf(PREFIX)!==0)return;
+  // Clear first so names don't linger in the address bar, even if parsing fails.
+  history.replaceState(null,"",location.pathname+location.search);
+  try{
+    var obj=JSON.parse(decodeURIComponent(h.slice(PREFIX.length)));
+    // Scrapes only: a crafted link must not be able to open a full project.
+    if(!obj||!obj.organizations)throw new Error("not a scrape");
+    var hasPlan=Object.keys(MODEL.members).some(function(id){
+      var m=MODEL.members[id];
+      return m.loc!=="avail"&&m.loc!==m.home;
+    });
+    if(hasPlan&&!confirm("Replace your current plan with fresh data from LCR?\n\n"
+      +"Your planned changes will be lost. Choose Cancel to keep them.")){
+      flash("Kept your current plan.");
+      return;
+    }
+    ingest(obj);
+    if(TAB_CHANNEL){ AWAITING_TAB=true; TAB_CHANNEL.postMessage("imported"); }
+  }catch(e){
+    flash("Couldn't read the LCR data. Try the bookmark again.");
+  }
+}
+
+/* An already-open tool tab must adopt the import, or its stale model overwrites it on next save. */
+var TAB_CHANNEL=null,AWAITING_TAB=false;
+try{ TAB_CHANNEL=new BroadcastChannel("callings-manager"); }catch(e){}
+if(TAB_CHANNEL)TAB_CHANNEL.onmessage=function(e){
+  if(e.data==="imported"){
+    load();
+    UNDO=[]; REDO=[]; updateUndoButtons();
+    renderAll();
+    flash("Updated from LCR.");
+    TAB_CHANNEL.postMessage("adopted");
+  }else if(e.data==="adopted"&&AWAITING_TAB){
+    AWAITING_TAB=false;
+    history.back();
+  }
+};
 
 /* ====================== start ============================================= */
 load();
 renderAll();
+importFromHash();
 </script>
 </body>
 </html>
