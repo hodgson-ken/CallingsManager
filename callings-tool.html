@@ -29,11 +29,24 @@
     text-transform:uppercase; white-space:nowrap; line-height:1; }
   .changes-as-of{ font-size:12px; color:#c4c7cd; white-space:nowrap; }
   .changes-as-of b{ color:#fff; }
-  .htools{ margin-left:auto; display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+  .htools{ margin-left:auto; display:flex; gap:6px 16px; align-items:flex-end; flex-wrap:wrap; }
+  .tgroup{ display:flex; flex-direction:column; gap:2px; }
+  .tlabel{ font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;
+    color:rgba(255,255,255,.55); line-height:1; }
+  .tbtns{ display:flex; gap:6px; align-items:center; }
+  .printmenu.leftmenu{ right:auto; left:0; }
   .htools .sep{ width:1px; height:22px; background:rgba(255,255,255,.22); margin:0 3px; }
   .hbtn{ background:rgba(255,255,255,.12); color:#fff; border:1px solid rgba(255,255,255,.2);
     border-radius:6px; padding:6px 11px; font-size:12.5px; font-weight:700; }
   .hbtn:hover{ background:rgba(255,255,255,.24); }
+  .eyebtn{ display:inline-flex; align-items:center; gap:5px; }
+  .eyebtn svg{ width:16px; height:16px; fill:currentColor; }
+  .rpt h3{ margin:0 0 6px; }
+  .rpt p{ margin:0 0 10px; font-size:14px; }
+  .rpt ul{ margin:0 0 12px; padding-left:20px; font-size:13.5px; max-height:50vh; overflow:auto; }
+  .rpt li{ margin:3px 0; }
+  .rpt li.warn{ color:#9a3412; }
+  .rpt li.ok{ color:#555; }
   .hbtn.go{ background:var(--accent); border-color:var(--accent); }
   .hbtn.go:hover{ background:#345d96; }
   .iconbtn{ background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.2);
@@ -52,6 +65,13 @@
     width:160px; }
   .hsearch::placeholder{ color:#c4c7cd; }
   .printwrap{ position:relative; }
+  .swrap{ position:relative; display:inline-flex; align-items:center; }
+  .swrap .hsearch{ padding-right:26px; }
+  .sclear{ position:absolute; right:4px; width:20px; height:20px; padding:0; border:0;
+    border-radius:50%; background:rgba(255,255,255,.22); color:#fff; font-size:15px;
+    line-height:20px; cursor:pointer; }
+  .sclear:hover{ background:rgba(255,255,255,.38); }
+  .sclear[hidden]{ display:none; }
   .printmenu{ position:absolute; right:0; top:36px; background:#3a3b40;
     border:1px solid rgba(255,255,255,.16); border-radius:7px; padding:5px;
     box-shadow:0 6px 18px rgba(0,0,0,.4); display:none; z-index:50; }
@@ -60,6 +80,10 @@
     border:0; color:#fff; padding:7px 14px; font-size:12.5px; border-radius:5px;
     white-space:nowrap; }
   .printmenu button:hover{ background:rgba(255,255,255,.14); }
+  .printmenu .chk{ padding-left:28px; position:relative; }
+  .printmenu .chk.on::before{ content:"\2713"; position:absolute; left:10px; }
+  .printmenu .mhead{ color:#aeb2ba; font-size:10.5px; font-weight:700; text-transform:uppercase;
+    letter-spacing:.06em; padding:9px 14px 3px; border-top:1px solid rgba(255,255,255,.12); margin-top:4px; }
 
   /* ---------- board ---------- */
   .board{ padding:14px 16px 70px; }
@@ -294,12 +318,19 @@
     <span class="brand">Callings Manager</span>
     <span class="changes-as-of" id="changesAsOf"></span>
     <div class="htools">
-      <input type="text" class="hsearch" id="search" placeholder="Search&hellip;">
-      <button class="hbtn go" data-act="getdata">Get data</button>
-      <button class="hbtn" data-act="paste">Paste</button>
-      <button class="hbtn" data-act="open">Open</button>
-      <button class="hbtn" data-act="save">Save</button>
-      <button class="hbtn" data-act="changes">Changes</button>
+      <span class="swrap"><input type="text" class="hsearch" id="search" placeholder="Search&hellip;"><button class="sclear" id="searchClear" title="Clear search" aria-label="Clear search" hidden>&times;</button></span>
+      <div class="tgroup"><span class="tlabel">Data</span><div class="tbtns">
+      <span class="printwrap" id="dataWrap">
+        <button class="hbtn go" data-act="datamenu" aria-haspopup="true">Data &#9662;</button>
+        <div class="printmenu leftmenu" id="dataMenu">
+          <button data-act="getdata">Get data</button>
+          <button data-act="paste">Paste</button>
+          <button data-act="open">Open</button>
+          <button data-act="save">Save</button>
+        </div>
+      </span>
+      </div></div>
+      <div class="tgroup"><span class="tlabel">Plan</span><div class="tbtns">
       <button class="iconbtn ur" id="undoBtn" data-act="undo" title="Nothing to undo" disabled>
         <svg viewBox="0 0 24 24"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/></svg>
         <span class="ur-n" id="undoN"></span>
@@ -308,18 +339,30 @@
         <svg viewBox="0 0 24 24"><path d="M18.4 10.6C16.55 8.99 14.15 8 11.5 8c-4.65 0-8.58 3.03-9.96 7.22L3.9 16c1.05-3.19 4.05-5.5 7.6-5.5 1.95 0 3.73.72 5.12 1.88L13 16h9V7l-3.6 3.6z"/></svg>
         <span class="ur-n" id="redoN"></span>
       </button>
-      <span class="sep"></span>
       <button class="iconbtn" data-act="addmember" title="Add a member">
         <svg viewBox="0 0 24 24"><path d="M15 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm-9 0v3H3v2h3v3h2v-3h3v-2H8v-3Zm9 2c-2.7 0-8 1.3-8 4v2h16v-2c0-2.7-5.3-4-8-4Z"/></svg>
       </button>
+      <button class="hbtn eyebtn" data-act="changes" title="See planned changes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5C6.5 5 2.7 9.1 1.5 12c1.2 2.9 5 7 10.5 7s9.3-4.1 10.5-7C21.3 9.1 17.5 5 12 5Zm0 11.5A4.5 4.5 0 1 1 16.5 12 4.5 4.5 0 0 1 12 16.5Zm0-7A2.5 2.5 0 1 0 14.5 12 2.5 2.5 0 0 0 12 9.5Z"/></svg>Changes</button>
+      </div></div>
+      <div class="tgroup"><span class="tlabel">View</span><div class="tbtns">
       <button class="hbtn" data-act="cols" id="colsBtn" title="Column layout">3 col</button>
-      <button class="iconbtn" data-act="collapseall" id="collapseAllBtn" title="Collapse / expand all">
-        <svg viewBox="0 0 24 24"><path d="M4 15h16v-2H4zm0 4h16v-2H4zm0-8h16V9H4zm0-6v2h16V5z"/></svg>
+      <button class="iconbtn" data-act="collapseall" id="collapseAllBtn" title="Collapse all organizations">
+        <svg viewBox="0 0 24 24"><path id="collapseIcon" d="M7.41 18.59 8.83 20 12 16.83 15.17 20l1.41-1.41L12 14l-4.59 4.59zm9.18-13.18L15.17 4 12 7.17 8.83 4 7.41 5.41 12 10l4.59-4.59z"/></svg>
       </button>
-      <button class="iconbtn" data-act="time" id="timeBtn" title="Time in calling">
-        <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8Zm1-13h-2v6l5 3 1-1.7-4-2.3Z"/></svg>
-      </button>
-      <span class="printwrap">
+      <span class="printwrap" id="timeWrap">
+        <button class="iconbtn" data-act="timemenu" id="timeBtn" title="Time in calling">
+          <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8Zm1-13h-2v6l5 3 1-1.7-4-2.3Z"/></svg>
+        </button>
+        <div class="printmenu leftmenu" id="timeMenu">
+          <button data-act="time" id="timeColorItem" class="chk">Color by time in calling</button>
+          <div class="mhead">Show callings held</div>
+          <button data-act="tenure" data-v="0" class="chk on">Any length</button>
+          <button data-act="tenure" data-v="24" class="chk">2+ years</button>
+          <button data-act="tenure" data-v="36" class="chk">3+ years</button>
+          <button data-act="tenure" data-v="60" class="chk">5+ years</button>
+        </div>
+      </span>
+      <span class="printwrap" id="printWrap">
         <button class="iconbtn" data-act="printmenu" title="Print">
           <svg viewBox="0 0 24 24"><path d="M19 8H5a3 3 0 0 0-3 3v6h4v4h12v-4h4v-6a3 3 0 0 0-3-3Zm-3 11H8v-5h8Zm3-7a1 1 0 1 1 1-1 1 1 0 0 1-1 1ZM18 3H6v4h12Z"/></svg>
         </button>
@@ -328,6 +371,7 @@
           <button data-act="printall">Print All Callings</button>
         </div>
       </span>
+      </div></div>
     </div>
   </div>
 
@@ -399,6 +443,16 @@
     <div class="mbtnrow">
       <button id="pasteLoad">Load data</button>
       <button class="ghost" data-close="pasteModal">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="reportModal" class="modal hidden">
+  <div class="modalbox rpt">
+    <div id="reportBody"></div>
+    <div class="mbtnrow">
+      <button data-close="reportModal">Keep my plan</button>
+      <button class="ghost" id="reportDiscard">Discard plan, use LCR as-is</button>
     </div>
   </div>
 </div>
@@ -668,6 +722,11 @@ function callingChanged(c){
   return !(cur.length===1&&cur[0].id===c.home);
 }
 function changedCallings(){ return MODEL.callings.filter(callingChanged); }
+var TENURE_MIN=0;
+function tenureMatch(c){
+  if(!TENURE_MIN)return true;
+  return membersAt(c.id).some(function(m){ return (tenureMonths(m.sustained)||0)>=TENURE_MIN; });
+}
 
 /* ====================== undo / redo ======================================= */
 function pushUndo(){
@@ -745,10 +804,156 @@ function load(){
 }
 
 /* ====================== ingest ============================================ */
-function ingest(obj){
+/* Sanity-check a scrape so an LCR layout change can't silently load garbage. */
+function validateScrape(obj,prev){
+  var w=[],calls=[];
+  (obj.organizations||[]).forEach(function(o){
+    (o.subOrgs||[]).forEach(function(s){ calls=calls.concat(s.callings||[]); });
+  });
+  if(!calls.length){ return ["No callings were found on the page."]; }
+  var blank=calls.filter(function(c){return !String(c.calling||"").trim();}).length;
+  if(blank/calls.length>0.1)w.push(blank+" of "+calls.length+" callings have no name.");
+  var filled=calls.filter(function(c){return !c.vacant;});
+  if(!filled.length)w.push("Every calling shows as Vacant.");
+  else{
+    var odd=filled.filter(function(c){return /^[\d\W]/.test(String(c.member||""));}).length;
+    if(odd/filled.length>0.1)w.push(odd+" member names look like dates or numbers, not names.");
+    var dated=filled.filter(function(c){return c.sustained;});
+    var bad=dated.filter(function(c){return !parseLcrDate(c.sustained);}).length;
+    if(dated.length/filled.length<0.2)w.push("Almost no sustained dates were found.");
+    else if(bad/dated.length>0.3)w.push(bad+" sustained dates couldn't be read.");
+  }
+  if(obj.withoutCallings&&obj.withoutCallings.length){
+    var wc=obj.withoutCallings;
+    var miss=wc.filter(function(a){return !/^[MF]/i.test(a.gender||"")||!/^\d+$/.test(String(a.age||"").trim());}).length;
+    if(miss/wc.length>0.3)w.push(miss+" of "+wc.length+" members without callings are missing gender or age.");
+  }
+  if(prev&&prev.callings){
+    var before=prev.callings.filter(function(c){return !c.userAdded;}).length;
+    if(before>=20&&calls.length<before*0.6)
+      w.push("Only "+calls.length+" callings found, down from "+before+" last time.");
+  }
+  return w;
+}
+
+/* A plan exists when anyone sits somewhere other than their LCR home, or a calling was added. */
+function hasPlan(M){
+  if(!M||!M.members)return false;
+  return Object.keys(M.members).some(function(id){
+    var m=M.members[id]; return m.loc!=="avail"&&m.loc!==m.home;
+  })||(M.callings||[]).some(function(c){return c.userAdded;});
+}
+
+/* Re-apply the old plan on top of fresh LCR data. Members are matched by name plus home calling. */
+function mergePlan(old,F){
+  var notes=[],applied=0,used={};
+  var oldC={}; old.callings.forEach(function(c){oldC[c.id]=c;});
+  old.callings.forEach(function(c){
+    if(!c.userAdded||F.callings.some(function(x){return x.id===c.id;}))return;
+    var at=-1,orgAt=-1;
+    F.callings.forEach(function(x,i){
+      if(x.org===c.org){orgAt=i; if(x.sub===c.sub)at=i;}
+    });
+    var nc={id:c.id,org:c.org,sub:c.sub,name:c.name,home:null,userAdded:true};
+    var pos=at>=0?at:orgAt;
+    if(pos>=0)F.callings.splice(pos+1,0,nc); else F.callings.push(nc);
+  });
+  var cById={}; F.callings.forEach(function(c){cById[c.id]=c;});
+  function key(s){return String(s||"").trim().toLowerCase();}
+  function find(pred){
+    for(var k in F.members){ if(!used[k]&&pred(F.members[k]))return F.members[k]; }
+    return null;
+  }
+  function where(loc){
+    if(loc==="pool")return "Names to Consider";
+    if(loc==="hide")return "Hidden";
+    var c=cById[loc]||oldC[loc];
+    return c?c.name+(c.sub?" ("+c.sub+")":""):"a calling";
+  }
+  function note(kind,t){ notes.push({kind:kind,text:t}); }
+  Object.keys(old.members).forEach(function(id){
+    var o=old.members[id];
+    if(o.loc===o.home||(!o.home&&o.loc==="avail"))return;
+    var n=key(o.name),toCalling=o.loc!=="pool"&&o.loc!=="hide",fm=null;
+    if(toCalling){
+      var done=find(function(m){return key(m.name)===n&&m.home===o.loc;});
+      if(done){ used[done.id]=true; note("ok",o.name+" is already in "+where(o.loc)+" in LCR."); return; }
+    }
+    if(o.home){
+      fm=find(function(m){return key(m.name)===n&&m.home===o.home;});
+      if(!fm){
+        fm=find(function(m){return key(m.name)===n&&!m.home;});
+        if(fm&&!toCalling){ used[fm.id]=true; note("ok",o.name+" has already been released from "+where(o.home)+" in LCR."); return; }
+        if(fm)note("ok",o.name+" was released from "+where(o.home)+" in LCR; still planned for "+where(o.loc)+".");
+        else{ note("warn",o.name+" is no longer in "+where(o.home)+" in LCR, so the move to "+where(o.loc)+" was dropped."); return; }
+      }
+    }else{
+      fm=find(function(m){return key(m.name)===n&&!m.home;});
+      if(!fm){
+        if(!o.gender&&!o.age){
+          var mid="m"+(F.seq++);
+          fm=F.members[mid]={id:mid,name:o.name,sustained:"",setApart:false,home:null,loc:"pool"};
+        }else{
+          var has=find(function(m){return key(m.name)===n;});
+          note("warn",o.name+(has?" now has a calling in LCR ("+where(has.home)+")":" is no longer on the LCR list")
+            +", so the move to "+where(o.loc)+" was dropped.");
+          return;
+        }
+      }
+    }
+    var loc=o.loc;
+    if(toCalling&&!cById[loc]){
+      note("warn",where(loc)+" no longer exists in LCR; "+o.name+" was moved to Names to Consider.");
+      loc="pool";
+    }
+    if(toCalling&&cById[loc]&&oldC[loc]){
+      var was=oldC[loc].home&&old.members[oldC[loc].home],now=cById[loc].home&&F.members[cById[loc].home];
+      if(now&&(!was||key(was.name)!==key(now.name)))
+        note("warn",now.name+" now holds "+where(loc)+" in LCR. "+o.name+" is still planned there too.");
+    }
+    used[fm.id]=true; fm.loc=loc; applied++;
+  });
+  return {model:F,applied:applied,notes:notes};
+}
+
+var REPORT_KEY=STORE+".report";
+function showReport(r){
+  var warns=r.notes.filter(function(n){return n.kind==="warn";});
+  var li=function(n){return "<li class='"+n.kind+"'>"+esc(n.text)+"</li>";};
+  document.getElementById("reportBody").innerHTML="<h3>Updated from LCR</h3>"
+    +"<p>Kept <b>"+r.applied+"</b> planned move"+(r.applied===1?"":"s")+" on top of the fresh data."
+    +(warns.length?" <b>"+warns.length+"</b> need"+(warns.length===1?"s":"")+" a look:":"")+"</p>"
+    +(r.notes.length?"<ul>"+warns.map(li).join("")
+      +r.notes.filter(function(n){return n.kind!=="warn";}).map(li).join("")+"</ul>":"");
+  show("reportModal");
+}
+function pendingReport(){
+  try{ var s=localStorage.getItem(REPORT_KEY); return s?JSON.parse(s):null; }catch(e){ return null; }
+}
+
+function ingest(obj,opts){
+  opts=opts||{};
   if(obj&&obj.organizations){
-    MODEL=buildModel(obj);
-    flash(obj.withoutCallingsFailed
+    if(!opts.trusted){
+      var w=validateScrape(obj,MODEL);
+      if(w.length&&!confirm("The LCR data looks unusual:\n\n- "+w.join("\n- ")
+        +"\n\nLCR may have changed its page layout. Load it anyway?")){
+        flash("Kept your current board.");
+        return false;
+      }
+    }
+    var fresh=buildModel(obj),rep=null;
+    if(!opts.replace&&hasPlan(MODEL)){
+      rep=mergePlan(MODEL,deepCopy(fresh));
+      MODEL=rep.model;
+      rep.fresh=fresh;
+      try{ localStorage.setItem(REPORT_KEY,JSON.stringify(rep)); }catch(e){}
+    }else{
+      MODEL=fresh;
+      try{ localStorage.removeItem(REPORT_KEY); }catch(e){}
+    }
+    if(rep)showReport(rep);
+    else flash(obj.withoutCallingsFailed
       ?"Loaded callings, but couldn't get members without callings."
       :"Loaded "+MODEL.callings.length+" callings"
         +(MODEL.hasAvail?" and "+membersAt("avail").length+" members without callings.":"."));
@@ -760,6 +965,7 @@ function ingest(obj){
   }
   UNDO=[]; REDO=[]; updateUndoButtons();
   save(); renderAll();
+  return true;
 }
 
 /* ====================== flash ============================================= */
@@ -869,17 +1075,21 @@ function renderBoard(){
     var col=COLLAPSED[O.name]?" collapsed":"";
     var body="";
     O.subs.forEach(function(S){
+      var subHit=SEARCH&&(matchSearch(S.name)||matchSearch(O.name));
       var cards=S.callings.filter(function(c){
-        if(!SEARCH)return true;
+        if(!tenureMatch(c))return false;
+        if(!SEARCH||subHit)return true;
         if(matchSearch(c.name))return true;
         return membersAt(c.id).some(function(m){return matchSearch(m.name);});
       }).map(callingCard).join("");
+      if((TENURE_MIN||SEARCH)&&!cards)return;
       var addBtn="<button class='add-calling' data-addcalling='"
         +esc(O.name)+SEP+esc(S.name)+"' title='Add a calling'>+</button>";
       body+="<div class='sub'>"
         +(S.name?"<div class='sub-title'>"+esc(S.name)+"</div>":"")
         +"<div class='callings'>"+cards+addBtn+"</div></div>";
     });
+    if((TENURE_MIN||SEARCH)&&!body)return;
     html+="<div class='org"+col+"' data-org='"+esc(O.name)+"' style='--bg:"
       +orgColor(O.name,i)+"'>"
       +"<div class='org-head'><span class='org-title'>"+esc(O.name)+"</span>"
@@ -887,6 +1097,9 @@ function renderBoard(){
       +"<div class='org-body'>"+body+"</div></div>";
   });
   html+="</div>";
+  if((SEARCH||TENURE_MIN)&&html.slice(-"<div id='columns'></div>".length)==="<div id='columns'></div>")
+    html+="<div class='dz-hint' style='padding:18px 4px'>No callings match"
+      +(SEARCH?" &ldquo;"+esc(SEARCH)+"&rdquo;":"")+(TENURE_MIN?" at "+(TENURE_MIN/12)+"+ years":"")+".</div>";
 
   /* hide bin */
   var hid=membersAt("hide");
@@ -920,7 +1133,9 @@ function renderAvailList(){
 
 /* ====================== interactions ====================================== */
 function doAct(act,el){
-  if(act==="getdata"){ show("getdataModal"); }
+  if(act!=="datamenu")document.getElementById("dataMenu").classList.remove("open");
+  if(act==="datamenu"){ toggleMenu("dataMenu"); }
+  else if(act==="getdata"){ show("getdataModal"); }
   else if(act==="paste"){
     document.getElementById("pasteText").value="";
     document.getElementById("pasteMsg").textContent="";
@@ -931,7 +1146,7 @@ function doAct(act,el){
   else if(act==="changes"){ showChanges(); }
   else if(act==="undo"){ undoStep(); }
   else if(act==="redo"){ redoStep(); }
-  else if(act==="demo"){ ingest(deepCopy(DEMO)); }
+  else if(act==="demo"){ ingest(deepCopy(DEMO),{replace:true,trusted:true}); }
   else if(act==="addmember"){ addMember(); }
   else if(act==="cols"){
     var c=document.getElementById("columns"),btn=document.getElementById("colsBtn");
@@ -945,19 +1160,34 @@ function doAct(act,el){
       .filter(function(o,i,a){return a.indexOf(o)===i;});
     var anyOpen=allOrgs.some(function(o){return !COLLAPSED[o];});
     allOrgs.forEach(function(o){COLLAPSED[o]=anyOpen;});
-    document.getElementById("collapseAllBtn").classList.toggle("on",anyOpen);
+    var cb=document.getElementById("collapseAllBtn");
+    cb.classList.toggle("on",anyOpen);
+    cb.title=anyOpen?"Expand all organizations":"Collapse all organizations";
+    document.getElementById("collapseIcon").setAttribute("d",anyOpen
+      ?"M12 5.83 15.17 9l1.41-1.41L12 3 7.41 7.59 8.83 9 12 5.83zm0 12.34L8.83 15l-1.41 1.41L12 21l4.59-4.59L15.17 15 12 18.17z"
+      :"M7.41 18.59 8.83 20 12 16.83 15.17 20l1.41-1.41L12 14l-4.59 4.59zm9.18-13.18L15.17 4 12 7.17 8.83 4 7.41 5.41 12 10l4.59-4.59z");
     renderBoard();
   }
+  else if(act==="timemenu"){ toggleMenu("timeMenu"); }
   else if(act==="time"){
-    document.body.classList.toggle("timeview");
-    document.getElementById("timeBtn").classList.toggle("on",
-      document.body.classList.contains("timeview"));
+    var tv=document.body.classList.toggle("timeview");
+    document.getElementById("timeColorItem").classList.toggle("on",tv);
+    syncTimeBtn();
   }
-  else if(act==="printmenu"){
-    document.getElementById("printMenu").classList.toggle("open");
-  }
+  else if(act==="tenure"){ setTenure(parseInt(el.dataset.v,10)||0); }
+  else if(act==="printmenu"){ toggleMenu("printMenu"); }
   else if(act==="printall"){ document.getElementById("printMenu").classList.remove("open"); doPrint("all"); }
   else if(act==="printchanges"){ document.getElementById("printMenu").classList.remove("open"); doPrint("changes"); }
+}
+/* Open a toolbar menu toward whichever side has room, so it never runs off-screen. */
+function toggleMenu(id){
+  var m=document.getElementById(id);
+  if(!m.classList.toggle("open"))return;
+  m.classList.add("leftmenu");
+  if(m.getBoundingClientRect().right>window.innerWidth-8){
+    m.classList.remove("leftmenu");
+    if(m.getBoundingClientRect().left<8)m.classList.add("leftmenu");
+  }
 }
 function addMember(){
   var name=prompt("Name of the member to add (Last, First):","");
@@ -1085,13 +1315,27 @@ document.querySelector(".htools").addEventListener("click",function(e){
   var b=e.target.closest("[data-act]");
   if(b)doAct(b.dataset.act,b);
 });
-document.getElementById("search").addEventListener("input",function(e){
-  SEARCH=e.target.value.trim().toLowerCase();
+function setSearch(v){
+  var inp=document.getElementById("search");
+  if(inp.value!==v)inp.value=v;
+  SEARCH=v.trim().toLowerCase();
+  document.getElementById("searchClear").hidden=!v;
   renderBoard();
+}
+document.getElementById("search").addEventListener("input",function(e){ setSearch(e.target.value); });
+document.getElementById("search").addEventListener("keydown",function(e){
+  if(e.key==="Escape"&&e.target.value){ setSearch(""); }
+});
+document.getElementById("searchClear").addEventListener("click",function(){
+  setSearch(""); document.getElementById("search").focus();
 });
 document.addEventListener("click",function(e){
-  if(!e.target.closest(".printwrap"))
+  if(!e.target.closest("#printWrap"))
     document.getElementById("printMenu").classList.remove("open");
+  if(!e.target.closest("#timeWrap"))
+    document.getElementById("timeMenu").classList.remove("open");
+  if(!e.target.closest("#dataWrap"))
+    document.getElementById("dataMenu").classList.remove("open");
 });
 
 /* modals */
@@ -1135,6 +1379,34 @@ window.addEventListener("afterprint",function(){
   document.getElementById("printArea").innerHTML="";
 });
 document.getElementById("changesPrint").addEventListener("click",function(){ doPrint("changes"); });
+document.getElementById("reportModal").addEventListener("click",function(e){
+  if(e.target.closest("button"))try{ localStorage.removeItem(REPORT_KEY); }catch(err){}
+});
+document.getElementById("reportDiscard").addEventListener("click",function(){
+  var r=pendingReport()||{};
+  hide("reportModal");
+  if(!r.fresh){ flash("Nothing to discard."); return; }
+  pushUndo();
+  MODEL=r.fresh;
+  save(); renderAll();
+  flash("Plan discarded. Undo brings it back.");
+});
+function syncTimeBtn(){
+  document.getElementById("timeBtn").classList.toggle("on",
+    document.body.classList.contains("timeview")||TENURE_MIN>0);
+}
+function setTenure(v){
+  TENURE_MIN=v;
+  Array.prototype.forEach.call(document.querySelectorAll("[data-act=tenure]"),function(b){
+    b.classList.toggle("on",+b.dataset.v===v);
+  });
+  syncTimeBtn();
+  renderBoard();
+  if(TENURE_MIN){
+    var n=MODEL.callings.filter(tenureMatch).length;
+    flash(n+" calling"+(n===1?"":"s")+" held "+(TENURE_MIN/12)+"+ years.");
+  }
+}
 function show(id){ document.getElementById(id).classList.remove("hidden"); }
 function hide(id){ document.getElementById(id).classList.add("hidden"); }
 
@@ -1308,16 +1580,7 @@ function importFromHash(){
     var obj=JSON.parse(decodeURIComponent(h.slice(PREFIX.length)));
     // Scrapes only: a crafted link must not be able to open a full project.
     if(!obj||!obj.organizations)throw new Error("not a scrape");
-    var hasPlan=Object.keys(MODEL.members).some(function(id){
-      var m=MODEL.members[id];
-      return m.loc!=="avail"&&m.loc!==m.home;
-    });
-    if(hasPlan&&!confirm("Replace your current plan with fresh data from LCR?\n\n"
-      +"Your planned changes will be lost. Choose Cancel to keep them.")){
-      flash("Kept your current plan.");
-      return;
-    }
-    ingest(obj);
+    if(!ingest(obj))return;
     if(TAB_CHANNEL){ AWAITING_TAB=true; TAB_CHANNEL.postMessage("imported"); }
   }catch(e){
     flash("Couldn't read the LCR data. Try the bookmark again.");
@@ -1332,7 +1595,8 @@ if(TAB_CHANNEL)TAB_CHANNEL.onmessage=function(e){
     load();
     UNDO=[]; REDO=[]; updateUndoButtons();
     renderAll();
-    flash("Updated from LCR.");
+    var r=pendingReport();
+    if(r)showReport(r); else flash("Updated from LCR.");
     TAB_CHANNEL.postMessage("adopted");
   }else if(e.data==="adopted"&&AWAITING_TAB){
     AWAITING_TAB=false;
