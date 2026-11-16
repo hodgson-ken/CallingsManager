@@ -178,7 +178,21 @@ Work after the handoff, driven by real use in bishopric planning. Roughly in ord
   opener, and only scrapes, never full projects. If the handoff fails (blocked pop-up,
   or LCR severing the opener link), the bookmark falls back to the Copy box after 10
   seconds. Old `#import=` bookmarks are refused with instructions to redrag and clear
-  history. After another tool tab adopts the import, the import tab closes itself.
+  history.
+- **Tab handling.** The Get data link opens LCR in the same tab. After an import, the
+  newly opened tool tab keeps the board; older tool tabs close themselves, or show a
+  note if the browser won't let them. *Start over* in one tab clears the others.
+  `window.name` is reset on load so a reused tab always reloads.
+- **Bookmark waits for LCR.** If the page hasn't finished loading, the bookmark waits up
+  to 20 seconds; on the wrong LCR page it offers to go to Callings By Organization.
+  Progress shows two lines: callings collected, then members without callings.
+- **Bookmark version check.** The tool remembers which bookmark version last imported
+  and, if it is current, Get data skips straight to the LCR step.
+- **Search fades** non-matching callings instead of hiding them, and collapses orgs
+  with no matches. Intro screen for first use, sample-ward banner, *Data ▸ Start over*.
+- **Collapsed sections** (Members Without Callings, Hide) open from a click anywhere.
+- **History cleanup.** Commits that contained the old URL-import code and a real ward
+  name were removed from the git history.
 
 The tool is also hosted as a static page on the user's own web server, which is what
 makes one-click import possible; it still sends no data anywhere.

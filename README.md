@@ -25,7 +25,8 @@ the LCR JSON endpoint it depended on.
   option to discard the plan instead.
 - **Data check** — warns before loading if the LCR data looks wrong (for example after
   LCR changes its page layout).
-- **Search** — narrows the board to matching callings or names; empty groups hide.
+- **Search** — fades callings and groups that don't match and collapses empty ones;
+  Esc or × clears.
 - **Layout** menu — 3, 4 or automatic columns, and Normal / Large / Extra large text for
   a TV or projector. Saved per browser.
 - **Undo / redo**, **Print Changes**, **Print All Callings**.
@@ -37,9 +38,11 @@ the LCR JSON endpoint it depended on.
 1. **Open the tool** — either the hosted copy or `callings-tool.html` double-clicked
    locally.
 2. Click **Data ▸ Get data** and drag the **Grab Ward Callings** button onto your
-   bookmarks bar. (One-time setup; drag it again after updates to the tool.)
-3. Sign in to `lcr.churchofjesuschrist.org`, open **Callings → Callings By
-   Organization**, and let the page finish loading.
+   bookmarks bar. (One-time setup. Get data tells you if your bookmark is current and
+   skips this step; drag it again only when it says the bookmark is out of date.)
+3. Sign in to `lcr.churchofjesuschrist.org` and open **Callings → Callings By
+   Organization**. If you click the bookmark too early it waits for the page; on the
+   wrong page it offers to take you there.
 4. Click your **Grab Ward Callings** bookmark.
    - Hosted copy: when **Ward data ready** appears, click **Open in Callings
      Manager**; the tool opens with the data loaded. If the browser asks, allow
@@ -66,6 +69,8 @@ The original callingmanager.com's policy applies here verbatim: **church policy 
 that membership data must not be sent to third-party servers.** This tool sends nothing.
 The page is static. The bookmark hands data to the tool tab directly with
 `postMessage`, and the tool accepts it only from the LCR site. Data never goes in a web
-address, so it can't end up in browser history or history sync. Your board is kept in your browser's local storage and in any project file
-you save. If you want to verify, disconnect from the internet after the page has
+address, so it can't end up in browser history or history sync; old bookmarks that did
+this are refused. Your board is kept in your browser's local storage (on that device
+only, not synced) and in any project file you save. *Data ▸ Start over* erases it. The
+only network request is the Google Fonts stylesheet, which carries no ward data. If you want to verify, disconnect from the internet after the page has
 loaded — the tool keeps working.
