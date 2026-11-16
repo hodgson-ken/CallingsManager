@@ -29,11 +29,24 @@
     text-transform:uppercase; white-space:nowrap; line-height:1; }
   .changes-as-of{ font-size:12px; color:#c4c7cd; white-space:nowrap; }
   .changes-as-of b{ color:#fff; }
-  .htools{ margin-left:auto; display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+  .htools{ margin-left:auto; display:flex; gap:6px 16px; align-items:flex-end; flex-wrap:wrap; }
+  .tgroup{ display:flex; flex-direction:column; gap:2px; }
+  .tlabel{ font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;
+    color:rgba(255,255,255,.55); line-height:1; }
+  .tbtns{ display:flex; gap:6px; align-items:center; }
+  .printmenu.leftmenu{ right:auto; left:0; }
   .htools .sep{ width:1px; height:22px; background:rgba(255,255,255,.22); margin:0 3px; }
   .hbtn{ background:rgba(255,255,255,.12); color:#fff; border:1px solid rgba(255,255,255,.2);
     border-radius:6px; padding:6px 11px; font-size:12.5px; font-weight:700; }
   .hbtn:hover{ background:rgba(255,255,255,.24); }
+  .eyebtn{ display:inline-flex; align-items:center; gap:5px; }
+  .eyebtn svg{ width:16px; height:16px; fill:currentColor; }
+  .rpt h3{ margin:0 0 6px; }
+  .rpt p{ margin:0 0 10px; font-size:14px; }
+  .rpt ul{ margin:0 0 12px; padding-left:20px; font-size:13.5px; max-height:50vh; overflow:auto; }
+  .rpt li{ margin:3px 0; }
+  .rpt li.warn{ color:#9a3412; }
+  .rpt li.ok{ color:#555; }
   .hbtn.go{ background:var(--accent); border-color:var(--accent); }
   .hbtn.go:hover{ background:#345d96; }
   .iconbtn{ background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.2);
@@ -52,6 +65,13 @@
     width:160px; }
   .hsearch::placeholder{ color:#c4c7cd; }
   .printwrap{ position:relative; }
+  .swrap{ position:relative; display:inline-flex; align-items:center; }
+  .swrap .hsearch{ padding-right:26px; }
+  .sclear{ position:absolute; right:4px; width:20px; height:20px; padding:0; border:0;
+    border-radius:50%; background:rgba(255,255,255,.22); color:#fff; font-size:15px;
+    line-height:20px; cursor:pointer; }
+  .sclear:hover{ background:rgba(255,255,255,.38); }
+  .sclear[hidden]{ display:none; }
   .printmenu{ position:absolute; right:0; top:36px; background:#3a3b40;
     border:1px solid rgba(255,255,255,.16); border-radius:7px; padding:5px;
     box-shadow:0 6px 18px rgba(0,0,0,.4); display:none; z-index:50; }
@@ -60,6 +80,10 @@
     border:0; color:#fff; padding:7px 14px; font-size:12.5px; border-radius:5px;
     white-space:nowrap; }
   .printmenu button:hover{ background:rgba(255,255,255,.14); }
+  .printmenu .chk{ padding-left:28px; position:relative; }
+  .printmenu .chk.on::before{ content:"\2713"; position:absolute; left:10px; }
+  .printmenu .mhead{ color:#aeb2ba; font-size:10.5px; font-weight:700; text-transform:uppercase;
+    letter-spacing:.06em; padding:9px 14px 3px; border-top:1px solid rgba(255,255,255,.12); margin-top:4px; }
 
   /* ---------- board ---------- */
   .board{ padding:14px 16px 70px; }
@@ -70,14 +94,54 @@
     display:flex; align-items:center; gap:8px; }
   .dz-title .count{ font-weight:700; color:#8a8f97; font-size:12px; }
   .pool{ background:#e7e8ea; border:1px solid #d2d4d8; }
+  .pinmenu{ position:fixed; right:auto; }
+  .pinbtn{ margin-left:auto; flex:none; width:24px; height:24px; padding:3px; border:1px solid #c9ccd1;
+    background:#fff; border-radius:6px; cursor:pointer; line-height:0; }
+  .pinbtn svg{ width:100%; height:100%; fill:#8a8f97; }
+  .pinbtn.on{ background:var(--accent); border-color:var(--accent); }
+  .pinbtn.on svg{ fill:#fff; }
+  body.pin-side .board{ margin-left:var(--pinw,200px); }
+  body.pin-side .pool{ position:fixed; left:12px; top:var(--pintop,80px); bottom:12px;
+    width:max-content; min-width:150px; max-width:220px; box-sizing:border-box;
+    margin:0; overflow:auto; z-index:30; box-shadow:0 4px 18px rgba(0,0,0,.22); }
+  body.pin-side .pool .dz-title{ contain:inline-size; align-items:flex-start; }
+  body.pin-side .pool .members-row{ flex-direction:column; flex-wrap:nowrap; align-items:stretch; }
+  body.pin-side .pool .dz-hint{ white-space:normal; width:150px; }
+  body.pin-top .pool{ position:sticky; top:var(--pintop,80px); z-index:30;
+    box-shadow:0 4px 18px rgba(0,0,0,.22); }
+  body.pin-top .pool .dz-body{ max-height:112px; overflow:auto; }
+  @media (max-width:900px){
+    body.pin-side .board{ margin-left:0; }
+    body.pin-side .pool{ position:sticky; left:auto; bottom:auto; width:auto; max-width:none;
+      overflow:visible; margin:0 0 14px; }
+    body.pin-side .pool .members-row{ flex-direction:row; flex-wrap:wrap; }
+    body.pin-side .pool .dz-body{ max-height:112px; overflow:auto; }
+  }
   .hide{ background:#d7d8da; border:1px solid #c6c7ca; }
   .hide.collapsed .dz-body{ display:none; }
+  .avail{ background:#e3e9ee; border:1px solid #cdd6de; }
+  .avail.collapsed .dz-body{ display:none; }
+  #availTitle{ cursor:pointer; }
+  #availScroll{ max-height:320px; overflow-y:auto; }
+  #availList{ column-width:190px; column-gap:7px; min-height:30px; }
+  #availList .member{ break-inside:avoid; -webkit-column-break-inside:avoid; margin:0 0 5px; }
+  #availList .mname{ display:flex; justify-content:space-between; align-items:baseline;
+    gap:8px; text-align:left; }
+  #availList .mmeta{ font-variant-numeric:tabular-nums; }
+  .avail{ position:relative; }
+  .dz-caret{ position:absolute; right:14px; top:15px; font-size:11px; color:rgba(0,0,0,.42); transition:transform .15s; }
+  .avail.collapsed .dz-caret{ transform:rotate(-90deg); }
+  .availfilters{ display:flex; flex-wrap:wrap; gap:10px; align-items:center;
+    margin:0 0 8px; font-size:12px; color:#5a5f67; }
+  .availfilters input{ width:58px; margin-left:3px; }
+  .member .mmeta{ font-weight:400; font-size:10px; color:#7b818a; white-space:nowrap; }
   .members-row{ display:flex; flex-wrap:wrap; gap:7px; min-height:30px; }
   .dz-hint{ color:#8a8f97; font-size:12px; font-style:italic; padding:3px 0; }
 
   #columns{ column-width:340px; column-gap:14px; }
   #columns.cols-3{ column-width:unset; column-count:3; }
   #columns.cols-4{ column-width:unset; column-count:4; }
+  .board{ zoom:var(--bzoom,1); }
   .org{ break-inside:avoid; -webkit-column-break-inside:avoid; display:inline-block;
     width:100%; margin:0 0 14px; border-radius:14px; padding:8px 11px 12px;
     background:var(--bg,#dde2e8); box-shadow:0 2px 8px rgba(0,0,0,.16); }
@@ -94,9 +158,14 @@
     margin:8px 0 0; }
   .sub-title{ font-family:var(--lato); font-weight:700; font-size:15px;
     color:#41454c; text-align:center; margin:1px 0 6px; }
-  .callings{ display:flex; flex-wrap:wrap; gap:6px; }
+  .sub{ container-type:inline-size; }
+  .callings{ display:grid; grid-template-columns:repeat(auto-fill,minmax(min(112px,100%),1fr));
+    gap:6px; align-items:start; }
 
-  .calling{ flex:1 1 90px; min-width:90px; max-width:165px;
+  @container (min-width:230px){
+    .calling:has(.member.expanded){ grid-column:span 2; }
+  }
+  .calling{ min-width:0;
     background:rgba(255,255,255,.34); border:1px solid rgba(0,0,0,.07);
     border-radius:11px; padding:5px; position:relative; }
   .calling.dragover{ outline:2px dashed var(--accent); outline-offset:1px; }
@@ -115,15 +184,16 @@
   .member:active{ cursor:grabbing; }
   .member .mrow{ display:flex; align-items:center; gap:4px; }
   .member .mname{ flex:1; text-align:center; font-weight:700; font-size:11.5px;
-    color:#23262b; overflow-wrap:anywhere; }
+    color:#23262b; min-width:0; overflow-wrap:break-word; }
   .member .chev{ color:#aab0ba; font-size:9px; transition:transform .15s; }
   .member.expanded .chev{ transform:rotate(180deg); }
   .member.displaced{ border-color:var(--good); }
   .member .mdetail{ display:none; margin-top:5px; padding-top:5px;
     border-top:1px solid #ebedf0; font-size:10.5px; color:#5a5f67; }
   .member.expanded .mdetail{ display:block; }
-  .member .mdetail .d{ display:flex; justify-content:space-between; gap:6px; padding:1px 0; }
-  .member .mbtns{ display:flex; gap:5px; margin-top:5px; }
+  .member .mdetail .d{ display:flex; flex-wrap:wrap; justify-content:space-between; gap:0 6px; padding:1px 0; }
+  .member .mdetail .d>span:last-child{ margin-left:auto; text-align:right; }
+  .member .mbtns{ display:flex; flex-wrap:wrap; gap:5px; margin-top:5px; }
   .member .mbtns button{ flex:1; font-size:10px; font-weight:700; border-radius:5px;
     border:1px solid #c4cad3; background:#f4f5f7; color:#444; padding:3px 4px; }
   .member .mbtns button:hover{ background:#e7e9ec; }
@@ -148,7 +218,7 @@
   body.timeview .timelegend{ display:flex; }
   .timelegend .sw{ width:22px; height:13px; border:1px solid rgba(0,0,0,.12); }
 
-  .add-calling{ flex:0 0 auto; align-self:center; background:rgba(255,255,255,.55);
+  .add-calling{ justify-self:start; align-self:center; background:rgba(255,255,255,.55);
     border:1px dashed #aeb4bd; border-radius:9px; color:#6a7079; font-weight:700;
     font-size:15px; width:26px; height:30px; line-height:1; }
   .add-calling:hover{ background:#fff; color:var(--accent); }
@@ -179,6 +249,38 @@
   code{ background:#eef0f3; padding:1px 5px; border-radius:4px; font-size:12px; }
   .bm{ display:inline-block; background:var(--accent); color:#fff; text-decoration:none;
     font-weight:700; padding:10px 18px; border-radius:8px; cursor:grab; }
+  .gd-label{ font-size:11px; font-weight:800; letter-spacing:.06em; text-transform:uppercase;
+    color:#8a8f97; margin:15px 0 5px; }
+  .gd-step{ display:flex; gap:10px; margin:9px 0; font-size:14px; color:#33363c; }
+  .gd-step>div{ flex:1; min-width:0; }
+  .gd-n{ flex:0 0 24px; height:24px; border-radius:50%; background:var(--accent); color:#fff;
+    font-weight:800; font-size:13px; display:flex; align-items:center; justify-content:center; }
+  .gd-small{ font-size:12px !important; color:#8a8f97 !important; }
+  .gd-bmline{ margin:8px 0 !important; }
+  .gd-open{ color:var(--accent); font-weight:700; font-size:14px; }
+  .modalbox kbd{ font:600 12px var(--lato,sans-serif); background:#eef0f3; border:1px solid #d3d7dd;
+    border-radius:4px; padding:0 5px; white-space:nowrap; }
+  .dragdemo{ position:relative; height:112px; border:1px solid #d9dce1; border-radius:9px;
+    overflow:hidden; background:#fafbfc; }
+  .dd-bar{ height:34px; background:#e9ebef; border-bottom:1px solid #d9dce1; display:flex;
+    align-items:center; gap:5px; padding:0 10px; }
+  .dd-bar i{ width:8px; height:8px; border-radius:50%; background:#c5c9d0; }
+  .dd-slot{ margin-left:12px; width:164px; height:24px; border:1.5px dashed var(--accent);
+    border-radius:6px; animation:ddSlot 3.6s infinite; }
+  .dd-chip{ position:absolute; left:17px; top:69px; display:flex; align-items:center; gap:4px;
+    width:164px; height:26px; padding-left:9px; box-sizing:border-box; background:var(--accent);
+    color:#fff; border-radius:6px; font-size:12px; font-weight:700; white-space:nowrap;
+    animation:ddDrag 3.6s infinite; }
+  .dd-chip svg{ position:absolute; right:12px; top:11px; animation:ddCursor 3.6s infinite; }
+  @keyframes ddDrag{ 0%,15%{ transform:translate(0,0) rotate(0); opacity:1; }
+    22%{ transform:translate(14px,-3px) rotate(-2deg); }
+    65%{ transform:translate(44px,-65px) rotate(-2deg); opacity:1; }
+    74%,92%{ transform:translate(44px,-65px) rotate(0); opacity:1; }
+    100%{ transform:translate(44px,-65px); opacity:0; } }
+  @keyframes ddCursor{ 0%,70%{ opacity:1; transform:scale(1); } 15%,65%{ transform:scale(.88); }
+    78%,100%{ opacity:0; } }
+  @keyframes ddSlot{ 0%,60%{ opacity:.5; } 66%,92%{ opacity:1; } 100%{ opacity:.5; } }
+  @media (prefers-reduced-motion:reduce){ .dd-chip,.dd-chip svg,.dd-slot{ animation:none; } }
   details summary{ cursor:pointer; color:var(--accent); font-weight:700; font-size:13px; }
   .mbtnrow{ display:flex; gap:8px; margin-top:16px; flex-wrap:wrap; }
   .mbtnrow button{ font-weight:700; border-radius:7px; padding:9px 15px;
@@ -199,6 +301,26 @@
     #printArea{ display:block; }
     .p-org{ break-inside:avoid; }
   }
+  .modalbox.changesbox{ width:980px; }
+  .cv-title{ font-family:var(--fjalla); font-weight:400; color:#2f3034; font-size:22px; margin:0 0 2px; }
+  .cv-meta{ color:#666; font-size:12px; margin:0 0 12px !important; }
+  .cv-empty{ color:#666; font-size:14px; padding:18px 0; }
+  .cv-org{ break-inside:avoid; background:var(--bg,#e7e8ea); border-radius:12px;
+    padding:9px 11px 11px; margin:0 0 11px; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .cv-org h2{ font-family:var(--lato); font-weight:700; font-size:17px; color:#33363c;
+    text-align:center; margin:0 0 7px; border:0; padding:0; }
+  .cv-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(165px,1fr)); gap:7px; }
+  .cv-card{ break-inside:avoid; background:#fff; border:1px solid #b9bec6; border-radius:9px;
+    padding:7px 8px; text-align:center; }
+  .cv-calling{ font-size:11px; font-weight:700; color:#3b4048; line-height:1.2; }
+  .cv-sub{ font-size:10px; color:#7b818a; margin-top:1px; }
+  .cv-was{ font-size:12px; color:#777; margin-top:6px; }
+  .cv-arrow{ font-size:11px; color:#777; line-height:1.1; }
+  .cv-now{ font-size:13px; font-weight:800; color:#1f2226; }
+  .cv-now.cv-vacant{ font-weight:400; font-style:italic; color:#b3261e; }
+  .cv-chips{ display:flex; flex-wrap:wrap; gap:6px; justify-content:center; }
+  .cv-chip{ background:#fff; border:1px solid #b9bec6; border-radius:7px; padding:3px 8px; font-size:12px; }
+  .cv-chip small{ color:#7b818a; }
   #printArea h1{ font-family:var(--fjalla); font-weight:400; color:#2f3034;
     font-size:22px; margin:0 0 2px; }
   #printArea .p-meta{ color:#666; font-size:12px; margin:0 0 12px; }
@@ -213,18 +335,26 @@
   #printArea .p-chg{ padding:5px 0; border-bottom:1px solid #eee; font-size:12.5px; }
 </style>
 </head>
-<body>
+<body class="timeview">
 
 <div id="app">
   <div class="top-section">
     <span class="brand">Callings Manager</span>
     <span class="changes-as-of" id="changesAsOf"></span>
     <div class="htools">
-      <input type="text" class="hsearch" id="search" placeholder="Search&hellip;">
-      <button class="hbtn go" data-act="getdata">Get data</button>
-      <button class="hbtn" data-act="paste">Paste</button>
-      <button class="hbtn" data-act="open">Open</button>
-      <button class="hbtn" data-act="save">Save</button>
+      <span class="swrap"><input type="text" class="hsearch" id="search" placeholder="Search&hellip;"><button class="sclear" id="searchClear" title="Clear search" aria-label="Clear search" hidden>&times;</button></span>
+      <div class="tgroup"><span class="tlabel">Data</span><div class="tbtns">
+      <span class="printwrap" id="dataWrap">
+        <button class="hbtn go" data-act="datamenu" aria-haspopup="true">Data &#9662;</button>
+        <div class="printmenu leftmenu" id="dataMenu">
+          <button data-act="getdata">Get data</button>
+          <button data-act="paste">Paste</button>
+          <button data-act="open">Open</button>
+          <button data-act="save">Save</button>
+        </div>
+      </span>
+      </div></div>
+      <div class="tgroup"><span class="tlabel">Plan</span><div class="tbtns">
       <button class="iconbtn ur" id="undoBtn" data-act="undo" title="Nothing to undo" disabled>
         <svg viewBox="0 0 24 24"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/></svg>
         <span class="ur-n" id="undoN"></span>
@@ -233,18 +363,46 @@
         <svg viewBox="0 0 24 24"><path d="M18.4 10.6C16.55 8.99 14.15 8 11.5 8c-4.65 0-8.58 3.03-9.96 7.22L3.9 16c1.05-3.19 4.05-5.5 7.6-5.5 1.95 0 3.73.72 5.12 1.88L13 16h9V7l-3.6 3.6z"/></svg>
         <span class="ur-n" id="redoN"></span>
       </button>
-      <span class="sep"></span>
       <button class="iconbtn" data-act="addmember" title="Add a member">
         <svg viewBox="0 0 24 24"><path d="M15 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm-9 0v3H3v2h3v3h2v-3h3v-2H8v-3Zm9 2c-2.7 0-8 1.3-8 4v2h16v-2c0-2.7-5.3-4-8-4Z"/></svg>
       </button>
-      <button class="hbtn" data-act="cols" id="colsBtn" title="Column layout">3 col</button>
-      <button class="iconbtn" data-act="collapseall" id="collapseAllBtn" title="Collapse / expand all">
-        <svg viewBox="0 0 24 24"><path d="M4 15h16v-2H4zm0 4h16v-2H4zm0-8h16V9H4zm0-6v2h16V5z"/></svg>
+      <button class="hbtn eyebtn" data-act="changes" title="See planned changes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5C6.5 5 2.7 9.1 1.5 12c1.2 2.9 5 7 10.5 7s9.3-4.1 10.5-7C21.3 9.1 17.5 5 12 5Zm0 11.5A4.5 4.5 0 1 1 16.5 12 4.5 4.5 0 0 1 12 16.5Zm0-7A2.5 2.5 0 1 0 14.5 12 2.5 2.5 0 0 0 12 9.5Z"/></svg>Changes</button>
+      </div></div>
+      <div class="tgroup"><span class="tlabel">View</span><div class="tbtns">
+      <span class="printwrap" id="layoutWrap">
+        <button class="hbtn" data-act="layoutmenu" id="colsBtn" title="Columns and text size">Layout &#9662;</button>
+        <div class="printmenu leftmenu" id="layoutMenu">
+          <div class="mhead" style="border-top:0;margin-top:0">Columns</div>
+          <button data-act="cols" data-v="3" class="chk">3 columns</button>
+          <button data-act="cols" data-v="4" class="chk">4 columns</button>
+          <button data-act="cols" data-v="auto" class="chk">Auto (fit screen)</button>
+          <div class="mhead">Text size</div>
+          <button data-act="zoom" data-v="1" class="chk">Normal</button>
+          <button data-act="zoom" data-v="1.25" class="chk">Large</button>
+          <button data-act="zoom" data-v="1.5" class="chk">Extra large</button>
+          <div class="mhead">Pin Names to Consider</div>
+          <button data-act="pin" data-v="off" class="chk">Off</button>
+          <button data-act="pin" data-v="side" class="chk">Side panel</button>
+          <button data-act="pin" data-v="top" class="chk">Top</button>
+        </div>
+      </span>
+      <button class="iconbtn" data-act="collapseall" id="collapseAllBtn" title="Collapse all organizations">
+        <svg viewBox="0 0 24 24"><path id="collapseIcon" d="M7.41 18.59 8.83 20 12 16.83 15.17 20l1.41-1.41L12 14l-4.59 4.59zm9.18-13.18L15.17 4 12 7.17 8.83 4 7.41 5.41 12 10l4.59-4.59z"/></svg>
       </button>
-      <button class="iconbtn" data-act="time" id="timeBtn" title="Time in calling">
-        <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8Zm1-13h-2v6l5 3 1-1.7-4-2.3Z"/></svg>
-      </button>
-      <span class="printwrap">
+      <span class="printwrap" id="timeWrap">
+        <button class="iconbtn" data-act="timemenu" id="timeBtn" title="Time in calling">
+          <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8Zm1-13h-2v6l5 3 1-1.7-4-2.3Z"/></svg>
+        </button>
+        <div class="printmenu leftmenu" id="timeMenu">
+          <button data-act="time" id="timeColorItem" class="chk on">Color by time in calling</button>
+          <div class="mhead">Show callings held</div>
+          <button data-act="tenure" data-v="0" class="chk on">Any length</button>
+          <button data-act="tenure" data-v="24" class="chk">2+ years</button>
+          <button data-act="tenure" data-v="36" class="chk">3+ years</button>
+          <button data-act="tenure" data-v="60" class="chk">5+ years</button>
+        </div>
+      </span>
+      <span class="printwrap" id="printWrap">
         <button class="iconbtn" data-act="printmenu" title="Print">
           <svg viewBox="0 0 24 24"><path d="M19 8H5a3 3 0 0 0-3 3v6h4v4h12v-4h4v-6a3 3 0 0 0-3-3Zm-3 11H8v-5h8Zm3-7a1 1 0 1 1 1-1 1 1 0 0 1-1 1ZM18 3H6v4h12Z"/></svg>
         </button>
@@ -253,6 +411,7 @@
           <button data-act="printall">Print All Callings</button>
         </div>
       </span>
+      </div></div>
     </div>
   </div>
 
@@ -265,26 +424,51 @@
 <div id="getdataModal" class="modal hidden">
   <div class="modalbox">
     <h3>Get your ward's callings</h3>
-    <p>The Church retired callingmanager.com's old import link. This grabs the data
-    straight off the LCR page instead &mdash; nothing is uploaded anywhere.</p>
-    <p style="font-weight:700;color:#33363c;margin-top:14px">1. Add the grab button (one time)</p>
-    <p>Drag this onto your browser's bookmarks bar:</p>
-    <p style="margin:10px 0"><a class="bm" id="bookmarklet" href="#">&#128229; Grab Ward Callings</a></p>
+    <p>Your data stays in your browser. Nothing is uploaded.</p>
+
+    <div class="gd-label">First time only</div>
+    <div class="gd-step"><span class="gd-n">1</span><div>
+      <b>Show your bookmarks bar.</b>
+      <p>Press <kbd>&#8984; Shift B</kbd> in Chrome (<kbd>Ctrl Shift B</kbd> on Windows).
+      In Safari, choose View &rarr; Show Favorites Bar.</p>
+    </div></div>
+    <div class="gd-step"><span class="gd-n">2</span><div>
+      <b>Drag this blue button up to the bar.</b>
+      <p class="gd-bmline"><a class="bm" id="bookmarklet" href="#">&#128229; Grab Ward Callings</a></p>
+      <div class="dragdemo" aria-hidden="true">
+        <div class="dd-bar"><i></i><i></i><i></i><span class="dd-slot"></span></div>
+        <div class="dd-chip">&#128229; Grab Ward Callings
+          <svg viewBox="0 0 16 22" width="15" height="21"><path d="M1 1v16l4.4-3.7 2.9 6.9 3-1.3-2.9-6.7H14z" fill="#fff" stroke="#222" stroke-width="1.3" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+      <p class="gd-small">Have an older one? Delete it first.</p>
+    </div></div>
+
+    <div class="gd-label">Every time</div>
+    <div class="gd-step"><span class="gd-n">3</span><div>
+      <b>Open Callings By Organization in LCR.</b>
+      <p class="gd-bmline"><a class="gd-open" href="https://lcr.churchofjesuschrist.org/mlt/orgs?lang=eng" target="_blank" rel="noopener">Open LCR &#8599;</a></p>
+      <p>Sign in if asked, and wait for the names to appear.</p>
+    </div></div>
+    <div class="gd-step"><span class="gd-n">4</span><div>
+      <b>Click Grab Ward Callings in your bookmarks bar.</b>
+      <p>Wait a few seconds. When <b>Ward data ready</b> appears, click <b>Open in Callings Manager</b>. If your browser asks, allow pop-ups for the LCR site.</p>
+    </div></div>
+
     <details>
-      <summary>Can't drag it? Add it manually</summary>
-      <p>Make a new bookmark and paste this as its URL:</p>
+      <summary>On iPad, or can't drag it?</summary>
+      <ol>
+        <li>Bookmark this page.</li>
+        <li>Copy all of the text below.</li>
+        <li>Edit the new bookmark: name it <b>Grab Ward Callings</b> and replace its address with what you copied.</li>
+      </ol>
       <textarea id="bmcode" readonly rows="3" onclick="this.select()"></textarea>
     </details>
-    <p style="font-weight:700;color:#33363c;margin-top:14px">2. Pull the data</p>
-    <ol>
-      <li>Sign in to <code>lcr.churchofjesuschrist.org</code>.</li>
-      <li>Open <b>Callings &rarr; Organizations</b> and let it finish loading.</li>
-      <li>Click your <b>Grab Ward Callings</b> bookmark, then click <b>Copy</b>.</li>
-      <li>Come back, hit <b>Paste data</b> below, and paste it in.</li>
-    </ol>
+    <p id="localNote" class="gd-small" style="display:none">Using a copy saved on your computer?
+    The bookmark shows a <b>Copy</b> button. Click it, come back, and choose <b>Paste data</b>.</p>
     <div class="mbtnrow">
-      <button id="gotoPaste">Paste data now</button>
       <button class="ghost" data-close="getdataModal">Close</button>
+      <button class="ghost" id="gotoPaste">Paste data instead</button>
     </div>
   </div>
 </div>
@@ -303,6 +487,33 @@
   </div>
 </div>
 
+<div class="printmenu pinmenu" id="pinMenu">
+  <div class="mhead" style="border-top:0;margin-top:0">Keep in view</div>
+  <button data-act="pin" data-v="off" class="chk">Off</button>
+  <button data-act="pin" data-v="side" class="chk">Side panel</button>
+  <button data-act="pin" data-v="top" class="chk">Top</button>
+</div>
+
+<div id="reportModal" class="modal hidden">
+  <div class="modalbox rpt">
+    <div id="reportBody"></div>
+    <div class="mbtnrow">
+      <button data-close="reportModal">Keep my plan</button>
+      <button class="ghost" id="reportDiscard">Discard plan, use LCR as-is</button>
+    </div>
+  </div>
+</div>
+
+<div id="changesModal" class="modal hidden">
+  <div class="modalbox changesbox">
+    <div id="changesBody"></div>
+    <div class="mbtnrow">
+      <button id="changesPrint">Print</button>
+      <button class="ghost" data-close="changesModal">Close</button>
+    </div>
+  </div>
+</div>
+
 <div id="flash" class="hidden"></div>
 <input type="file" id="fileInput" accept=".json,application/json" style="display:none">
 
@@ -313,7 +524,7 @@
 function bmScrape(){
   var H=location.host||"";
   if(H.indexOf("lcr.churchofjesuschrist.org")<0){
-    alert("Open the LCR Organizations page first, then click this button:\n\n"
+    alert("Open the LCR Callings By Organization page first, then click this button:\n\n"
       +"https://lcr.churchofjesuschrist.org/mlt/orgs?lang=eng");
     return null;
   }
@@ -347,8 +558,8 @@ function bmScrape(){
     }
   }
   if(!orgs.length){
-    alert("No calling tables were found.\n\nMake sure you are on the LCR Organizations page "
-      +"(Callings > Organizations) and that it has fully loaded, then try again.");
+    alert("No calling tables were found.\n\nMake sure you are on the LCR Callings By Organization page "
+      +"and that it has fully loaded, then try again.");
     return null;
   }
   return {unit:unit,generated:new Date().toISOString(),
@@ -357,7 +568,105 @@ function bmScrape(){
 function bmDeliver(){
   var data=bmScrape();
   if(!data)return;
+  /* Data goes to the tool over postMessage only, never in a URL, so it cannot land in
+     browser history. The tool tab is opened by a second click once collection is done:
+     opening it earlier backgrounds this tab, and the hidden report page stalls there. */
+  var TOOL="__TOOL_URL__",tw=null,ready=false,pending=null;
+  var TORIGIN=(TOOL.match(/^https?:[/][/][^/]+/)||[""])[0];
+  window.addEventListener("message",function(e){
+    if(tw&&e.source===tw&&e.origin===TORIGIN&&e.data==="callings-ready"){ ready=true; flush(); }
+  });
+  function flush(){
+    if(!ready||!pending)return;
+    tw.postMessage({type:"callings-import",json:pending},TORIGIN);
+    pending=null;
+    toast("Sent to Callings Manager.");
+  }
+  function toast(t){
+    var d=document.createElement("div");
+    d.textContent=t;
+    d.style.cssText="position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:2147483647;"
+      +"background:#1a7f37;color:#fff;padding:10px 18px;border-radius:9px;font:600 14px sans-serif;";
+    document.body.appendChild(d);
+    setTimeout(function(){d.remove();},3000);
+  }
+  var note=document.createElement("div");
+  note.textContent="Collecting members without callings...";
+  note.style.cssText="position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:2147483647;"
+    +"background:#2f3034;color:#fff;padding:10px 18px;border-radius:9px;font:600 14px sans-serif;";
+  document.body.appendChild(note);
+  var f=document.createElement("iframe");
+  f.style.cssText="position:fixed;left:-9999px;top:0;width:1200px;height:800px;";
+  f.src="/mlt/report/member-callings?tab=without-callings&lang=eng";
+  document.body.appendChild(f);
+  var tries=0,last=0;
+  /* Cells can hold a responsive label before the value. */
+  function lastText(c){
+    if(!c)return "";
+    var w=c.ownerDocument.createTreeWalker(c,4),n,v="";
+    while((n=w.nextNode())){if(n.nodeValue.trim())v=n.nodeValue.trim();}
+    return v;
+  }
+  function readRows(){
+    var d;
+    try{d=f.contentDocument;}catch(e){return null;}
+    if(!d)return null;
+    var ts=d.querySelectorAll("table");
+    for(var i=0;i<ts.length;i++){
+      var h="",hs=ts[i].querySelectorAll("thead th");
+      for(var j=0;j<hs.length;j++)h+=" "+hs[j].textContent;
+      if(/gender/i.test(h)&&!/calling/i.test(h))return ts[i].querySelectorAll("tbody tr");
+    }
+    return null;
+  }
+  function poll(){
+    var rows=readRows(),n=rows?rows.length:0;
+    if(n&&n===last){
+      var out=[];
+      for(var i=0;i<n;i++){
+        var c=rows[i].children;
+        var nm=lastText(c[1]);
+        if(nm)out.push({name:nm,gender:lastText(c[2]),age:lastText(c[3])});
+      }
+      data.withoutCallings=out;
+      f.remove();note.remove();send();
+    }else if(++tries<60){
+      last=n;setTimeout(poll,250);
+    }else{
+      data.withoutCallingsFailed=true;
+      f.remove();note.remove();send();
+    }
+  }
+  poll();
+  function send(){
   var json=JSON.stringify(data);
+  if(!TORIGIN){ overlay(json); return; }
+  var n=(data.withoutCallings||[]).length;
+  var bx=document.createElement("div");
+  bx.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:2147483647;"
+    +"display:flex;align-items:center;justify-content:center;font-family:-apple-system,Segoe UI,Arial,sans-serif;";
+  bx.innerHTML="<div style='background:#fff;border-radius:14px;padding:22px 22px 18px;width:92%;max-width:440px;"
+    +"box-shadow:0 8px 32px rgba(0,0,0,.4);color:#222;text-align:center'>"
+    +"<h3 style='margin:0 0 6px;font-size:19px;color:#2f3034'>Ward data ready</h3>"
+    +"<p id=_bmi style='font-size:13.5px;color:#555;margin:0 0 16px'></p>"
+    +"<button id=_bmo style='font:inherit;padding:12px 22px;background:#3f6fb0;color:#fff;border:0;"
+    +"border-radius:9px;font-weight:700;font-size:16px;cursor:pointer'>Open in Callings Manager</button>"
+    +"<div style='margin-top:12px'><button id=_bmx2 style='font:inherit;background:none;border:0;color:#666;"
+    +"font-size:13px;cursor:pointer;text-decoration:underline'>Cancel</button></div></div>";
+  document.body.appendChild(bx);
+  bx.querySelector("#_bmi").textContent=data.withoutCallingsFailed
+    ?"Callings collected. Members without callings could not be read this time."
+    :"Callings and "+n+" members without callings collected.";
+  bx.querySelector("#_bmx2").onclick=function(){bx.remove();};
+  bx.querySelector("#_bmo").onclick=function(){
+    bx.remove();
+    try{ tw=window.open(TOOL+"#lcr-import","callingsManagerImport"); }catch(e){}
+    if(!tw){ overlay(json); return; }
+    pending=json; flush();
+    setTimeout(function(){ if(pending){ pending=null; overlay(json); } },10000);
+  };
+  }
+  function overlay(json){
   /* Inject overlay into current page — works on iPad/Safari without popup permission */
   var ov=document.createElement("div");
   ov.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:2147483647;"
@@ -388,6 +697,7 @@ function bmDeliver(){
   };
   ov.querySelector("#_bmx").onclick=function(){ov.remove();};
   ov.onclick=function(e){if(e.target===ov)ov.remove();};
+  }
 }
 
 /* ====================== helpers =========================================== */
@@ -454,6 +764,7 @@ function orgColor(name,i){
 /* ====================== state / model ===================================== */
 var STORE="wardCallingsBoard.v4";
 var MODEL=null;
+var AVAIL_F={gender:"",min:"",max:""},AVAIL_COLLAPSED=true;
 var EXPANDED={},COLLAPSED={},HIDECOLLAPSED=false,DRAG_ID=null,SEARCH="";
 var SEP="␟";
 var UNDO=[],REDO=[],MAX_UNDO=50;
@@ -481,6 +792,14 @@ function buildModel(scraped){
       });
     });
   });
+  if(scraped.withoutCallings){
+    M.hasAvail=true;
+    scraped.withoutCallings.forEach(function(a){
+      var mid="m"+(M.seq++);
+      M.members[mid]={id:mid,name:a.name,sustained:"",setApart:false,home:null,loc:"avail",
+        gender:a.gender||"",age:a.age||""};
+    });
+  }
   return M;
 }
 function membersAt(loc){
@@ -494,6 +813,11 @@ function callingChanged(c){
   return !(cur.length===1&&cur[0].id===c.home);
 }
 function changedCallings(){ return MODEL.callings.filter(callingChanged); }
+var TENURE_MIN=0;
+function tenureMatch(c){
+  if(!TENURE_MIN)return true;
+  return membersAt(c.id).some(function(m){ return (tenureMonths(m.sustained)||0)>=TENURE_MIN; });
+}
 
 /* ====================== undo / redo ======================================= */
 function pushUndo(){
@@ -571,10 +895,159 @@ function load(){
 }
 
 /* ====================== ingest ============================================ */
-function ingest(obj){
+/* Sanity-check a scrape so an LCR layout change can't silently load garbage. */
+function validateScrape(obj,prev){
+  var w=[],calls=[];
+  (obj.organizations||[]).forEach(function(o){
+    (o.subOrgs||[]).forEach(function(s){ calls=calls.concat(s.callings||[]); });
+  });
+  if(!calls.length){ return ["No callings were found on the page."]; }
+  var blank=calls.filter(function(c){return !String(c.calling||"").trim();}).length;
+  if(blank/calls.length>0.1)w.push(blank+" of "+calls.length+" callings have no name.");
+  var filled=calls.filter(function(c){return !c.vacant;});
+  if(!filled.length)w.push("Every calling shows as Vacant.");
+  else{
+    var odd=filled.filter(function(c){return /^[\d\W]/.test(String(c.member||""));}).length;
+    if(odd/filled.length>0.1)w.push(odd+" member names look like dates or numbers, not names.");
+    var dated=filled.filter(function(c){return c.sustained;});
+    var bad=dated.filter(function(c){return !parseLcrDate(c.sustained);}).length;
+    if(dated.length/filled.length<0.2)w.push("Almost no sustained dates were found.");
+    else if(bad/dated.length>0.3)w.push(bad+" sustained dates couldn't be read.");
+  }
+  if(obj.withoutCallings&&obj.withoutCallings.length){
+    var wc=obj.withoutCallings;
+    var miss=wc.filter(function(a){return !/^[MF]/i.test(a.gender||"")||!/^\d+$/.test(String(a.age||"").trim());}).length;
+    if(miss/wc.length>0.3)w.push(miss+" of "+wc.length+" members without callings are missing gender or age.");
+  }
+  if(prev&&prev.callings){
+    var before=prev.callings.filter(function(c){return !c.userAdded;}).length;
+    if(before>=20&&calls.length<before*0.6)
+      w.push("Only "+calls.length+" callings found, down from "+before+" last time.");
+  }
+  return w;
+}
+
+/* A plan exists when anyone sits somewhere other than their LCR home, or a calling was added. */
+function hasPlan(M){
+  if(!M||!M.members)return false;
+  return Object.keys(M.members).some(function(id){
+    var m=M.members[id]; return m.loc!=="avail"&&m.loc!==m.home;
+  })||(M.callings||[]).some(function(c){return c.userAdded;});
+}
+
+/* Re-apply the old plan on top of fresh LCR data. Members are matched by name plus home calling. */
+function mergePlan(old,F){
+  var notes=[],applied=0,used={};
+  var oldC={}; old.callings.forEach(function(c){oldC[c.id]=c;});
+  old.callings.forEach(function(c){
+    if(!c.userAdded||F.callings.some(function(x){return x.id===c.id;}))return;
+    var at=-1,orgAt=-1;
+    F.callings.forEach(function(x,i){
+      if(x.org===c.org){orgAt=i; if(x.sub===c.sub)at=i;}
+    });
+    var nc={id:c.id,org:c.org,sub:c.sub,name:c.name,home:null,userAdded:true};
+    var pos=at>=0?at:orgAt;
+    if(pos>=0)F.callings.splice(pos+1,0,nc); else F.callings.push(nc);
+  });
+  var cById={}; F.callings.forEach(function(c){cById[c.id]=c;});
+  function key(s){return String(s||"").trim().toLowerCase();}
+  function find(pred){
+    for(var k in F.members){ if(!used[k]&&pred(F.members[k]))return F.members[k]; }
+    return null;
+  }
+  function where(loc){
+    if(loc==="pool")return "Names to Consider";
+    if(loc==="hide")return "Hidden";
+    var c=cById[loc]||oldC[loc];
+    return c?c.name+(c.sub?" ("+c.sub+")":""):"a calling";
+  }
+  function note(kind,t){ notes.push({kind:kind,text:t}); }
+  Object.keys(old.members).forEach(function(id){
+    var o=old.members[id];
+    if(o.loc===o.home||(!o.home&&o.loc==="avail"))return;
+    var n=key(o.name),toCalling=o.loc!=="pool"&&o.loc!=="hide",fm=null;
+    if(toCalling){
+      var done=find(function(m){return key(m.name)===n&&m.home===o.loc;});
+      if(done){ used[done.id]=true; note("ok",o.name+" is already in "+where(o.loc)+" in LCR."); return; }
+    }
+    if(o.home){
+      fm=find(function(m){return key(m.name)===n&&m.home===o.home;});
+      if(!fm){
+        fm=find(function(m){return key(m.name)===n&&!m.home;});
+        if(fm&&!toCalling){ used[fm.id]=true; note("ok",o.name+" has already been released from "+where(o.home)+" in LCR."); return; }
+        if(fm)note("ok",o.name+" was released from "+where(o.home)+" in LCR; still planned for "+where(o.loc)+".");
+        else{ note("warn",o.name+" is no longer in "+where(o.home)+" in LCR, so the move to "+where(o.loc)+" was dropped."); return; }
+      }
+    }else{
+      fm=find(function(m){return key(m.name)===n&&!m.home;});
+      if(!fm){
+        if(!o.gender&&!o.age){
+          var mid="m"+(F.seq++);
+          fm=F.members[mid]={id:mid,name:o.name,sustained:"",setApart:false,home:null,loc:"pool"};
+        }else{
+          var has=find(function(m){return key(m.name)===n;});
+          note("warn",o.name+(has?" now has a calling in LCR ("+where(has.home)+")":" is no longer on the LCR list")
+            +", so the move to "+where(o.loc)+" was dropped.");
+          return;
+        }
+      }
+    }
+    var loc=o.loc;
+    if(toCalling&&!cById[loc]){
+      note("warn",where(loc)+" no longer exists in LCR; "+o.name+" was moved to Names to Consider.");
+      loc="pool";
+    }
+    if(toCalling&&cById[loc]&&oldC[loc]){
+      var was=oldC[loc].home&&old.members[oldC[loc].home],now=cById[loc].home&&F.members[cById[loc].home];
+      if(now&&(!was||key(was.name)!==key(now.name)))
+        note("warn",now.name+" now holds "+where(loc)+" in LCR. "+o.name+" is still planned there too.");
+    }
+    used[fm.id]=true; fm.loc=loc; applied++;
+  });
+  return {model:F,applied:applied,notes:notes};
+}
+
+var REPORT_KEY=STORE+".report";
+function showReport(r){
+  var warns=r.notes.filter(function(n){return n.kind==="warn";});
+  var li=function(n){return "<li class='"+n.kind+"'>"+esc(n.text)+"</li>";};
+  document.getElementById("reportBody").innerHTML="<h3>Updated from LCR</h3>"
+    +"<p>Kept <b>"+r.applied+"</b> planned move"+(r.applied===1?"":"s")+" on top of the fresh data."
+    +(warns.length?" <b>"+warns.length+"</b> need"+(warns.length===1?"s":"")+" a look:":"")+"</p>"
+    +(r.notes.length?"<ul>"+warns.map(li).join("")
+      +r.notes.filter(function(n){return n.kind!=="warn";}).map(li).join("")+"</ul>":"");
+  show("reportModal");
+}
+function pendingReport(){
+  try{ var s=localStorage.getItem(REPORT_KEY); return s?JSON.parse(s):null; }catch(e){ return null; }
+}
+
+function ingest(obj,opts){
+  opts=opts||{};
   if(obj&&obj.organizations){
-    MODEL=buildModel(obj);
-    flash("Loaded "+MODEL.callings.length+" callings.");
+    if(!opts.trusted){
+      var w=validateScrape(obj,MODEL);
+      if(w.length&&!confirm("The LCR data looks unusual:\n\n- "+w.join("\n- ")
+        +"\n\nLCR may have changed its page layout. Load it anyway?")){
+        flash("Kept your current board.");
+        return false;
+      }
+    }
+    var fresh=buildModel(obj),rep=null;
+    if(!opts.replace&&hasPlan(MODEL)){
+      rep=mergePlan(MODEL,deepCopy(fresh));
+      MODEL=rep.model;
+      rep.fresh=fresh;
+      try{ localStorage.setItem(REPORT_KEY,JSON.stringify(rep)); }catch(e){}
+    }else{
+      MODEL=fresh;
+      try{ localStorage.removeItem(REPORT_KEY); }catch(e){}
+    }
+    if(rep)showReport(rep);
+    else flash(obj.withoutCallingsFailed
+      ?"Loaded callings, but couldn't get members without callings."
+      :"Loaded "+MODEL.callings.length+" callings"
+        +(MODEL.hasAvail?" and "+membersAt("avail").length+" members without callings.":"."));
   }else if(obj&&obj.callings&&obj.members){
     MODEL=obj; MODEL.seq=MODEL.seq||0;
     flash("Project opened.");
@@ -583,6 +1056,7 @@ function ingest(obj){
   }
   UNDO=[]; REDO=[]; updateUndoButtons();
   save(); renderAll();
+  return true;
 }
 
 /* ====================== flash ============================================= */
@@ -610,7 +1084,8 @@ function memberCard(m){
   var bucket=tenureBucket(m.sustained);
   var displaced=(m.home&&m.loc!==m.home)||(!m.home);
   var cls="member in-calling-"+bucket+(EXPANDED[m.id]?" expanded":"")
-    +(displaced&&m.loc!==m.home?" displaced":"");
+    +(displaced&&m.loc!==m.home&&m.loc!=="avail"?" displaced":"");
+  var meta=(m.gender||m.age)?(m.gender+" "+m.age).trim():"";
   var det="<div class='mdetail'>"
     +"<div class='d'><span>Sustained</span><span>"+esc(m.sustained||"—")+"</span></div>"
     +"<div class='d'><span>Time in calling</span><span>"+esc(tenureText(m.sustained)||"—")+"</span></div>"
@@ -620,7 +1095,8 @@ function memberCard(m){
     +"<div class='mbtns'><button data-rel='"+esc(m.id)+"'>To Names</button>"
     +"<button data-hide='"+esc(m.id)+"'>Hide</button></div></div>";
   return "<div class='"+cls+"' draggable='true' data-mid='"+esc(m.id)+"'>"
-    +"<div class='mrow'><span class='mname'>"+esc(m.name)+"</span>"
+    +"<div class='mrow'><span class='mname'>"+esc(m.name)
+    +(meta?" <span class='mmeta'>"+esc(meta)+"</span>":"")+"</span>"
     +"<span class='chev'>&#9660;</span></div>"+det+"</div>";
 }
 function callingCard(c){
@@ -656,12 +1132,28 @@ function renderBoard(){
   /* names-to-consider pool */
   var pool=membersAt("pool");
   html+="<div class='dropzone pool' data-loc='pool'>"
-    +"<div class='dz-title'>Names to Consider <span class='count'>"+pool.length+"</span></div>"
+    +"<div class='dz-title'>Names to Consider <span class='count'>"+pool.length+"</span>"
+    +pinButton()+"</div>"
     +"<div class='dz-body'><div class='members-row'>"
     +(pool.length?pool.map(memberCard).join("")
        :"<div class='dz-hint'>Drag a released member here, or use Add a member. "
        +"Drag a name onto any calling to propose them.</div>")
     +"</div></div></div>";
+
+  /* members without callings */
+  if(MODEL.hasAvail){
+    html+="<div class='dropzone avail"+(AVAIL_COLLAPSED?" collapsed":"")+"' data-loc='avail'>"
+      +"<div class='dz-title' id='availTitle'>Members Without Callings "
+      +"<span class='count' id='availCount'></span><span class='dz-caret'>&#9660;</span></div>"
+      +"<div class='dz-body'><div class='availfilters'>"
+      +"<select data-avail='gender' aria-label='Gender'>"
+      +"<option value=''>All</option>"
+      +"<option value='F'"+(AVAIL_F.gender==="F"?" selected":"")+">Women</option>"
+      +"<option value='M'"+(AVAIL_F.gender==="M"?" selected":"")+">Men</option></select>"
+      +"<label>Age <input type='number' min='0' data-avail='min' placeholder='min' value='"+esc(AVAIL_F.min)+"'></label>"
+      +"<label>to <input type='number' min='0' data-avail='max' placeholder='max' value='"+esc(AVAIL_F.max)+"'></label>"
+      +"</div><div id='availScroll'><div id='availList'></div></div></div></div>";
+  }
 
   /* time legend */
   html+="<div class='timelegend'>Time in calling: &nbsp;<span class='sw' style='background:#e9f1e4'></span>"
@@ -670,22 +1162,26 @@ function renderBoard(){
     +"<span class='sw' style='background:#d28361'></span>&nbsp; new &rarr; long-serving</div>";
 
   /* organization columns */
-  html+="<div id='columns'>";
+  html+="<div id='columns'"+(LAYOUT.cols!=="auto"?" class='cols-"+LAYOUT.cols+"'":"")+">";
   orgs.forEach(function(O,i){
     var col=COLLAPSED[O.name]?" collapsed":"";
     var body="";
     O.subs.forEach(function(S){
+      var subHit=SEARCH&&(matchSearch(S.name)||matchSearch(O.name));
       var cards=S.callings.filter(function(c){
-        if(!SEARCH)return true;
+        if(!tenureMatch(c))return false;
+        if(!SEARCH||subHit)return true;
         if(matchSearch(c.name))return true;
         return membersAt(c.id).some(function(m){return matchSearch(m.name);});
       }).map(callingCard).join("");
+      if((TENURE_MIN||SEARCH)&&!cards)return;
       var addBtn="<button class='add-calling' data-addcalling='"
         +esc(O.name)+SEP+esc(S.name)+"' title='Add a calling'>+</button>";
       body+="<div class='sub'>"
         +(S.name?"<div class='sub-title'>"+esc(S.name)+"</div>":"")
         +"<div class='callings'>"+cards+addBtn+"</div></div>";
     });
+    if((TENURE_MIN||SEARCH)&&!body)return;
     html+="<div class='org"+col+"' data-org='"+esc(O.name)+"' style='--bg:"
       +orgColor(O.name,i)+"'>"
       +"<div class='org-head'><span class='org-title'>"+esc(O.name)+"</span>"
@@ -693,6 +1189,9 @@ function renderBoard(){
       +"<div class='org-body'>"+body+"</div></div>";
   });
   html+="</div>";
+  if((SEARCH||TENURE_MIN)&&/<div id='columns'[^>]*><\/div>$/.test(html))
+    html+="<div class='dz-hint' style='padding:18px 4px'>No callings match"
+      +(SEARCH?" &ldquo;"+esc(SEARCH)+"&rdquo;":"")+(TENURE_MIN?" at "+(TENURE_MIN/12)+"+ years":"")+".</div>";
 
   /* hide bin */
   var hid=membersAt("hide");
@@ -704,11 +1203,32 @@ function renderBoard(){
     +"</div></div></div>";
 
   board.innerHTML=html;
+  renderAvailList();
+  updatePinTop();
+}
+function renderAvailList(){
+  var list=document.getElementById("availList");
+  if(!list)return;
+  var all=membersAt("avail");
+  var min=parseInt(AVAIL_F.min,10),max=parseInt(AVAIL_F.max,10);
+  var shown=all.filter(function(m){
+    var age=parseInt(m.age,10);
+    if(AVAIL_F.gender&&m.gender.charAt(0).toUpperCase()!==AVAIL_F.gender)return false;
+    if(!isNaN(min)&&!(age>=min))return false;
+    if(!isNaN(max)&&!(age<=max))return false;
+    return !SEARCH||matchSearch(m.name);
+  });
+  list.innerHTML=shown.length?shown.map(memberCard).join("")
+    :"<div class='dz-hint'>No members match these filters.</div>";
+  document.getElementById("availCount").textContent=
+    shown.length===all.length?all.length:shown.length+" of "+all.length;
 }
 
 /* ====================== interactions ====================================== */
 function doAct(act,el){
-  if(act==="getdata"){ show("getdataModal"); }
+  if(act!=="datamenu")document.getElementById("dataMenu").classList.remove("open");
+  if(act==="datamenu"){ toggleMenu("dataMenu"); }
+  else if(act==="getdata"){ show("getdataModal"); }
   else if(act==="paste"){
     document.getElementById("pasteText").value="";
     document.getElementById("pasteMsg").textContent="";
@@ -716,35 +1236,92 @@ function doAct(act,el){
   }
   else if(act==="open"){ document.getElementById("fileInput").click(); }
   else if(act==="save"){ saveProject(); }
+  else if(act==="changes"){ showChanges(); }
   else if(act==="undo"){ undoStep(); }
   else if(act==="redo"){ redoStep(); }
-  else if(act==="demo"){ ingest(deepCopy(DEMO)); }
+  else if(act==="demo"){ ingest(deepCopy(DEMO),{replace:true,trusted:true}); }
   else if(act==="addmember"){ addMember(); }
-  else if(act==="cols"){
-    var c=document.getElementById("columns"),btn=document.getElementById("colsBtn");
-    if(!c){return;}
-    if(c.classList.contains("cols-3")){c.classList.replace("cols-3","cols-4");btn.textContent="4 col";}
-    else if(c.classList.contains("cols-4")){c.classList.remove("cols-4");btn.textContent="Auto";}
-    else{c.classList.add("cols-3");btn.textContent="3 col";}
+  else if(act==="layoutmenu"){ toggleMenu("layoutMenu"); }
+  else if(act==="cols"){ setLayout("cols",el.dataset.v); }
+  else if(act==="zoom"){ setLayout("zoom",el.dataset.v); }
+  else if(act==="pin"){ document.getElementById("pinMenu").classList.remove("open"); setLayout("pin",el.dataset.v); }
+  else if(act==="pinmenu"){
+    var pm=document.getElementById("pinMenu");
+    if(pm.classList.toggle("open")){
+      var r=el.getBoundingClientRect();
+      pm.style.top=Math.min(r.bottom+4,window.innerHeight-pm.offsetHeight-8)+"px";
+      pm.style.left=Math.max(8,Math.min(r.left,window.innerWidth-pm.offsetWidth-8))+"px";
+    }
   }
   else if(act==="collapseall"){
     var allOrgs=MODEL.callings.map(function(c){return c.org;})
       .filter(function(o,i,a){return a.indexOf(o)===i;});
     var anyOpen=allOrgs.some(function(o){return !COLLAPSED[o];});
     allOrgs.forEach(function(o){COLLAPSED[o]=anyOpen;});
-    document.getElementById("collapseAllBtn").classList.toggle("on",anyOpen);
+    var cb=document.getElementById("collapseAllBtn");
+    cb.classList.toggle("on",anyOpen);
+    cb.title=anyOpen?"Expand all organizations":"Collapse all organizations";
+    document.getElementById("collapseIcon").setAttribute("d",anyOpen
+      ?"M12 5.83 15.17 9l1.41-1.41L12 3 7.41 7.59 8.83 9 12 5.83zm0 12.34L8.83 15l-1.41 1.41L12 21l4.59-4.59L15.17 15 12 18.17z"
+      :"M7.41 18.59 8.83 20 12 16.83 15.17 20l1.41-1.41L12 14l-4.59 4.59zm9.18-13.18L15.17 4 12 7.17 8.83 4 7.41 5.41 12 10l4.59-4.59z");
     renderBoard();
   }
+  else if(act==="timemenu"){ toggleMenu("timeMenu"); }
   else if(act==="time"){
-    document.body.classList.toggle("timeview");
-    document.getElementById("timeBtn").classList.toggle("on",
-      document.body.classList.contains("timeview"));
+    var tv=document.body.classList.toggle("timeview");
+    document.getElementById("timeColorItem").classList.toggle("on",tv);
+    syncTimeBtn();
   }
-  else if(act==="printmenu"){
-    document.getElementById("printMenu").classList.toggle("open");
-  }
+  else if(act==="tenure"){ setTenure(parseInt(el.dataset.v,10)||0); }
+  else if(act==="printmenu"){ toggleMenu("printMenu"); }
   else if(act==="printall"){ document.getElementById("printMenu").classList.remove("open"); doPrint("all"); }
   else if(act==="printchanges"){ document.getElementById("printMenu").classList.remove("open"); doPrint("changes"); }
+}
+/* Columns and text size are per-screen preferences, so they live outside the project model. */
+var LAYOUT_KEY="wardCallingsBoard.layout",LAYOUT={cols:"3",zoom:"1",pin:"off"};
+try{ var _l=JSON.parse(localStorage.getItem(LAYOUT_KEY)||"null"); if(_l)LAYOUT={cols:_l.cols||"3",zoom:_l.zoom||"1",pin:_l.pin||"off"}; }catch(e){}
+function applyLayout(){
+  document.documentElement.style.setProperty("--bzoom",LAYOUT.zoom);
+  document.body.classList.toggle("pin-side",LAYOUT.pin==="side");
+  document.body.classList.toggle("pin-top",LAYOUT.pin==="top");
+  updatePinTop();
+  Array.prototype.forEach.call(document.querySelectorAll("#layoutMenu [data-v],#pinMenu [data-v]"),function(b){
+    b.classList.toggle("on",LAYOUT[b.dataset.act]===b.dataset.v);
+  });
+}
+function pinButton(){
+  return "<button class='pinbtn"+(LAYOUT.pin!=="off"?" on":"")+"' data-act='pinmenu'"
+    +" title='Keep this list in view while you scroll' aria-label='Pin Names to Consider' aria-haspopup='true'>"
+    +"<svg viewBox='0 0 24 24'><path d='M16 3H8v2h1v6l-3 3v2h5v6h2v-6h5v-2l-3-3V5h1z'/></svg></button>";
+}
+/* Pinned list sits just under the sticky header. Lengths inside the zoomed board get scaled, so divide. */
+function updatePinTop(){
+  var h=document.querySelector(".top-section").getBoundingClientRect().height;
+  var z=parseFloat(LAYOUT.zoom)||1;
+  document.documentElement.style.setProperty("--pintop",((h+8)/z)+"px");
+  var pool=document.querySelector(".pool");
+  if(pool&&LAYOUT.pin==="side")
+    document.documentElement.style.setProperty("--pinw",(pool.getBoundingClientRect().width/z+14)+"px");
+}
+window.addEventListener("resize",updatePinTop);
+document.getElementById("pinMenu").addEventListener("click",function(e){
+  var b=e.target.closest("[data-act]"); if(b)doAct(b.dataset.act,b);
+});
+window.addEventListener("scroll",function(){ document.getElementById("pinMenu").classList.remove("open"); },{passive:true});
+function setLayout(k,v){
+  LAYOUT[k]=v;
+  try{ localStorage.setItem(LAYOUT_KEY,JSON.stringify(LAYOUT)); }catch(e){}
+  applyLayout(); renderBoard();
+}
+/* Open a toolbar menu toward whichever side has room, so it never runs off-screen. */
+function toggleMenu(id){
+  var m=document.getElementById(id);
+  if(!m.classList.toggle("open"))return;
+  m.classList.add("leftmenu");
+  if(m.getBoundingClientRect().right>window.innerWidth-8){
+    m.classList.remove("leftmenu");
+    if(m.getBoundingClientRect().left<8)m.classList.add("leftmenu");
+  }
 }
 function addMember(){
   var name=prompt("Name of the member to add (Last, First):","");
@@ -792,6 +1369,13 @@ function _dragScroll(e){
 document.addEventListener("dragover",_dragScroll);
 document.addEventListener("dragend",function(){if(_scrollRaf){cancelAnimationFrame(_scrollRaf);_scrollRaf=null;}});
 
+document.getElementById("board").addEventListener("input",function(e){
+  var k=e.target.dataset&&e.target.dataset.avail;
+  if(!k)return;
+  AVAIL_F[k]=e.target.value;
+  renderAvailList();
+});
+
 /* drag and drop */
 document.getElementById("board").addEventListener("dragstart",function(e){
   var m=e.target.closest(".member");
@@ -831,6 +1415,11 @@ document.getElementById("board").addEventListener("click",function(e){
   if(rel){ moveMember(rel.dataset.rel,"pool"); return; }
   var hd=e.target.closest("[data-hide]");
   if(hd){ moveMember(hd.dataset.hide,"hide"); return; }
+  if(e.target.closest("#availTitle")){
+    AVAIL_COLLAPSED=!AVAIL_COLLAPSED;
+    e.target.closest(".avail").classList.toggle("collapsed",AVAIL_COLLAPSED);
+    return;
+  }
   var ac=e.target.closest("[data-addcalling]");
   if(ac){ addCalling(ac.dataset.addcalling); return; }
   var mem=e.target.closest(".member");
@@ -860,13 +1449,31 @@ document.querySelector(".htools").addEventListener("click",function(e){
   var b=e.target.closest("[data-act]");
   if(b)doAct(b.dataset.act,b);
 });
-document.getElementById("search").addEventListener("input",function(e){
-  SEARCH=e.target.value.trim().toLowerCase();
+function setSearch(v){
+  var inp=document.getElementById("search");
+  if(inp.value!==v)inp.value=v;
+  SEARCH=v.trim().toLowerCase();
+  document.getElementById("searchClear").hidden=!v;
   renderBoard();
+}
+document.getElementById("search").addEventListener("input",function(e){ setSearch(e.target.value); });
+document.getElementById("search").addEventListener("keydown",function(e){
+  if(e.key==="Escape"&&e.target.value){ setSearch(""); }
+});
+document.getElementById("searchClear").addEventListener("click",function(){
+  setSearch(""); document.getElementById("search").focus();
 });
 document.addEventListener("click",function(e){
-  if(!e.target.closest(".printwrap"))
+  if(!e.target.closest("#printWrap"))
     document.getElementById("printMenu").classList.remove("open");
+  if(!e.target.closest("#pinMenu,.pinbtn"))
+    document.getElementById("pinMenu").classList.remove("open");
+  if(!e.target.closest("#layoutWrap"))
+    document.getElementById("layoutMenu").classList.remove("open");
+  if(!e.target.closest("#timeWrap"))
+    document.getElementById("timeMenu").classList.remove("open");
+  if(!e.target.closest("#dataWrap"))
+    document.getElementById("dataMenu").classList.remove("open");
 });
 
 /* modals */
@@ -909,6 +1516,35 @@ window.addEventListener("keydown",function(e){
 window.addEventListener("afterprint",function(){
   document.getElementById("printArea").innerHTML="";
 });
+document.getElementById("changesPrint").addEventListener("click",function(){ doPrint("changes"); });
+document.getElementById("reportModal").addEventListener("click",function(e){
+  if(e.target.closest("button"))try{ localStorage.removeItem(REPORT_KEY); }catch(err){}
+});
+document.getElementById("reportDiscard").addEventListener("click",function(){
+  var r=pendingReport()||{};
+  hide("reportModal");
+  if(!r.fresh){ flash("Nothing to discard."); return; }
+  pushUndo();
+  MODEL=r.fresh;
+  save(); renderAll();
+  flash("Plan discarded. Undo brings it back.");
+});
+function syncTimeBtn(){
+  document.getElementById("timeBtn").classList.toggle("on",
+    document.body.classList.contains("timeview")||TENURE_MIN>0);
+}
+function setTenure(v){
+  TENURE_MIN=v;
+  Array.prototype.forEach.call(document.querySelectorAll("[data-act=tenure]"),function(b){
+    b.classList.toggle("on",+b.dataset.v===v);
+  });
+  syncTimeBtn();
+  renderBoard();
+  if(TENURE_MIN){
+    var n=MODEL.callings.filter(tenureMatch).length;
+    flash(n+" calling"+(n===1?"":"s")+" held "+(TENURE_MIN/12)+"+ years.");
+  }
+}
 function show(id){ document.getElementById(id).classList.remove("hidden"); }
 function hide(id){ document.getElementById(id).classList.add("hidden"); }
 
@@ -945,46 +1581,56 @@ function buildPrintAll(){
   });
   return h;
 }
-function buildPrintChanges(){
+function buildChangesBoard(){
   var changed=changedCallings();
-  var h="<h1>"+esc(MODEL.unit||"Ward")+" &mdash; Proposed Calling Changes</h1>"
-    +"<p class='p-meta'>Changes as of "+new Date().toLocaleDateString()
-    +" &middot; "+changed.length+" calling(s)</p>";
-  h+="<h2>Changed callings</h2>";
+  var orgNames=MODEL.callings.map(function(c){return c.org;})
+    .filter(function(o,i,a){return a.indexOf(o)===i;});
+  var h="";
   if(!changed.length){
-    h+="<p class='p-chg'>No changes yet. Drag members between callings to plan changes.</p>";
-  }else{
-    var byOrg={};
-    changed.forEach(function(c){ (byOrg[c.org]=byOrg[c.org]||[]).push(c); });
-    Object.keys(byOrg).forEach(function(org){
-      h+="<h3>"+esc(org)+"</h3>";
-      byOrg[org].forEach(function(c){
-        var cur=membersAt(c.id);
-        var nowTxt=cur.length?cur.map(function(m){return esc(m.name);}).join(", "):"Vacant";
-        var wasTxt=c.home&&MODEL.members[c.home]?esc(MODEL.members[c.home].name):"Vacant";
-        h+="<div class='p-chg'><b>"+esc(c.name)+"</b> &mdash; was "+wasTxt
-          +" &nbsp;&rarr;&nbsp; now <b>"+nowTxt+"</b></div>";
-      });
+    h+="<p class='cv-empty'>No changes yet. Drag members between callings to plan changes.</p>";
+  }
+  orgNames.forEach(function(org,i){
+    var list=changed.filter(function(c){return c.org===org;});
+    if(!list.length)return;
+    h+="<section class='cv-org' style='--bg:"+orgColor(org,i)+"'><h2>"+esc(org)+"</h2><div class='cv-grid'>";
+    list.forEach(function(c){
+      var cur=membersAt(c.id);
+      var was=c.home&&MODEL.members[c.home]?MODEL.members[c.home].name:"";
+      h+="<div class='cv-card'><div class='cv-calling'>"+esc(c.name)+"</div>"
+        +(c.sub?"<div class='cv-sub'>"+esc(c.sub)+"</div>":"")
+        +"<div class='cv-was'>"+(was?"<s>"+esc(was)+"</s>":"Was vacant")+"</div>"
+        +"<div class='cv-arrow'>&darr;</div>"
+        +(cur.length?cur.map(function(m){return "<div class='cv-now'>"+esc(m.name)+"</div>";}).join("")
+          :"<div class='cv-now cv-vacant'>Vacant</div>")
+        +"</div>";
     });
-  }
-  var pool=membersAt("pool");
-  h+="<h2>Names to Consider ("+pool.length+")</h2>";
-  if(!pool.length)h+="<p class='p-chg'>None.</p>";
-  pool.forEach(function(m){
-    var origin=m.home&&MODEL.members[m.home]?"":"";
-    var was="";
-    if(m.home){
-      var hc=MODEL.callings.filter(function(c){return c.id===m.home;})[0];
-      if(hc)was=" (released from "+esc(hc.name)+")";
-    }else was=" (added)";
-    h+="<div class='p-chg'><b>"+esc(m.name)+"</b>"+was+"</div>";
+    h+="</div></section>";
   });
-  var hid=membersAt("hide");
-  if(hid.length){
-    h+="<h2>Hidden ("+hid.length+")</h2>";
-    hid.forEach(function(m){ h+="<div class='p-chg'>"+esc(m.name)+"</div>"; });
-  }
+  var extras=[["Names to Consider",membersAt("pool")],["Hidden",membersAt("hide")]];
+  extras.forEach(function(x){
+    if(!x[1].length)return;
+    h+="<section class='cv-org cv-extra'><h2>"+x[0]+"</h2><div class='cv-chips'>"
+      +x[1].map(function(m){
+        var hc=m.home?MODEL.callings.filter(function(c){return c.id===m.home;})[0]:null;
+        return "<span class='cv-chip'><b>"+esc(m.name)+"</b>"
+          +(hc?" <small>released from "+esc(hc.name)+"</small>":"")+"</span>";
+      }).join("")+"</div></section>";
+  });
   return h;
+}
+function changesHeading(){
+  var n=changedCallings().length;
+  return "<h1 class='cv-title'>"+esc(MODEL.unit||"Ward")+" &mdash; Proposed Calling Changes</h1>"
+    +"<p class='cv-meta'>As of "+esc(new Date().toLocaleDateString())+" &middot; "+n
+    +" calling"+(n===1?"":"s")+" changed</p>";
+}
+function buildPrintChanges(){
+  return changesHeading()+buildChangesBoard();
+}
+function showChanges(){
+  if(!MODEL.callings.length){ flash("Load callings data first."); return; }
+  document.getElementById("changesBody").innerHTML=changesHeading()+buildChangesBoard();
+  show("changesModal");
 }
 function doPrint(kind){
   if(!MODEL.callings.length){ flash("Load callings data first."); return; }
@@ -1012,6 +1658,10 @@ function saveProject(){
   var BM="javascript:(function(){"+bmScrape.toString()+";"+bmDeliver.toString()
     +";bmDeliver();})();";
   BM=BM.replace(/\s*\n\s*/g," ");
+  if(/^https?:$/.test(location.protocol)){
+    BM=BM.replace("__TOOL_URL__",location.origin+location.pathname);
+  }
+  if(location.protocol==="file:")document.getElementById("localNote").style.display="";
   document.getElementById("bookmarklet").href=BM;
   document.getElementById("bmcode").value=BM;
 })();
@@ -1052,11 +1702,68 @@ var DEMO={unit:"Demo Ward (000000)",generated:new Date().toISOString(),source:"d
   {name:"Sunday School",subOrgs:[{name:"Sunday School Presidency",callings:[
     {calling:"Sunday School President",member:"Quinn, Mark",vacant:false,sustained:"1 Sep 2024",setApart:true},
     {calling:"Sunday School Secretary",member:"Reed, Tyler",vacant:false,sustained:"1 Sep 2024",setApart:false}]}]}
- ]};
+ ],
+ withoutCallings:[
+  {name:"Stone, Amy",gender:"F",age:"34"},{name:"Turner, Ben",gender:"M",age:"52"},
+  {name:"Underwood, Cara",gender:"F",age:"67"},{name:"Vega, Dan",gender:"M",age:"19"},
+  {name:"White, Ella",gender:"F",age:"23"},{name:"Young, Frank",gender:"M",age:"41"}]};
+
+/* ====================== LCR import ======================================= */
+var LCR_ORIGIN="https://lcr.churchofjesuschrist.org";
+function importFromLcr(){
+  var h=location.hash;
+  if(h.indexOf("#import=")===0){
+    /* Old bookmarks put ward data in the URL, which browsers keep in history. Refuse it. */
+    history.replaceState(null,"",location.pathname+location.search);
+    alert("This Grab Ward Callings bookmark is out of date.\n\n"
+      +"It puts ward data in the page address, which your browser saves in its history. "
+      +"Please delete the old bookmark, then use Data > Get data to drag the new one.\n\n"
+      +"Also delete history entries for this page that contain \"#import=\".");
+    return;
+  }
+  if(h!=="#lcr-import")return;
+  history.replaceState(null,"",location.pathname+location.search);
+  if(!window.opener){ flash("Couldn't connect to LCR. Use Data > Paste instead."); return; }
+  window.addEventListener("message",function(e){
+    if(e.origin!==LCR_ORIGIN||e.source!==window.opener)return;
+    var d=e.data;
+    if(!d||d.type!=="callings-import"||typeof d.json!=="string")return;
+    try{
+      var obj=JSON.parse(d.json);
+      /* Scrapes only: a message must not be able to open a full project. */
+      if(!obj||!obj.organizations)throw new Error("not a scrape");
+      if(!ingest(obj))return;
+      if(TAB_CHANNEL){ AWAITING_TAB=true; TAB_CHANNEL.postMessage("imported"); }
+    }catch(err){
+      flash("Couldn't read the LCR data. Try the bookmark again.");
+    }
+  });
+  try{ window.opener.postMessage("callings-ready",LCR_ORIGIN); }catch(e){}
+}
+
+/* An already-open tool tab must adopt the import, or its stale model overwrites it on next save. */
+var TAB_CHANNEL=null,AWAITING_TAB=false;
+try{ TAB_CHANNEL=new BroadcastChannel("callings-manager"); }catch(e){}
+if(TAB_CHANNEL)TAB_CHANNEL.onmessage=function(e){
+  if(e.data==="imported"){
+    load();
+    UNDO=[]; REDO=[]; updateUndoButtons();
+    renderAll();
+    var r=pendingReport();
+    if(r)showReport(r); else flash("Updated from LCR.");
+    TAB_CHANNEL.postMessage("adopted");
+  }else if(e.data==="adopted"&&AWAITING_TAB){
+    AWAITING_TAB=false;
+    window.close();
+  }
+};
 
 /* ====================== start ============================================= */
 load();
+applyLayout();
+syncTimeBtn();
 renderAll();
+importFromLcr();
 </script>
 </body>
 </html>
