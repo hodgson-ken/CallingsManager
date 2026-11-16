@@ -608,10 +608,16 @@ function bmDeliver(){
     document.body.appendChild(d);
     setTimeout(function(){d.remove();},3000);
   }
+  var nc=0;
+  data.organizations.forEach(function(o){o.subOrgs.forEach(function(s){nc+=s.callings.length;});});
   var note=document.createElement("div");
-  note.textContent="Collecting members without callings...";
   note.style.cssText="position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:2147483647;"
-    +"background:#2f3034;color:#fff;padding:10px 18px;border-radius:9px;font:600 14px sans-serif;";
+    +"background:#2f3034;color:#fff;padding:11px 18px;border-radius:9px;font:600 14px/1.6 sans-serif;";
+  var l1=document.createElement("div"),l2=document.createElement("div");
+  l1.textContent="\u2713 Callings: "+nc+" collected";
+  l2.textContent="\u2026 Members without callings: reading\u2026";
+  l2.style.color="#c9ccd1";
+  note.appendChild(l1);note.appendChild(l2);
   document.body.appendChild(note);
   var f=document.createElement("iframe");
   f.style.cssText="position:fixed;left:-9999px;top:0;width:1200px;height:800px;";
@@ -647,12 +653,16 @@ function bmDeliver(){
         if(nm)out.push({name:nm,gender:lastText(c[2]),age:lastText(c[3])});
       }
       data.withoutCallings=out;
-      f.remove();note.remove();send();
+      l2.textContent="\u2713 Members without callings: "+out.length+" collected";
+      l2.style.color="#fff";
+      f.remove();setTimeout(function(){note.remove();send();},700);
     }else if(++tries<60){
+      if(n)l2.textContent="\u2026 Members without callings: "+n+" found so far\u2026";
       last=n;setTimeout(poll,250);
     }else{
       data.withoutCallingsFailed=true;
-      f.remove();note.remove();send();
+      l2.textContent="\u2717 Members without callings: could not read";
+      f.remove();setTimeout(function(){note.remove();send();},700);
     }
   }
   poll();
