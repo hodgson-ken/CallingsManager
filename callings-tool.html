@@ -80,6 +80,7 @@
     border:0; color:#fff; padding:7px 14px; font-size:12.5px; border-radius:5px;
     white-space:nowrap; }
   .printmenu button:hover{ background:rgba(255,255,255,.14); }
+  .printmenu .msep{ border-top:1px solid rgba(255,255,255,.14); margin:4px 0; }
   .printmenu .chk{ padding-left:28px; position:relative; }
   .printmenu .chk.on::before{ content:"\2713"; position:absolute; left:10px; }
   .printmenu .mhead{ color:#aeb2ba; font-size:10.5px; font-weight:700; text-transform:uppercase;
@@ -94,6 +95,10 @@
     display:flex; align-items:center; gap:8px; }
   .dz-title .count{ font-weight:700; color:#8a8f97; font-size:12px; }
   .pool{ background:#e7e8ea; border:1px solid #d2d4d8; }
+  /* Search fades non-matches. Opacity sits on leaves only, so a faded drop target can
+     still light up fully while dragging over it. */
+  .calling.dim, .org.dim > .org-head, .sub.dim > .sub-title{ opacity:.4; transition:opacity .15s; }
+  .calling.dim:hover, .calling.dim.dragover{ opacity:1; }
   .pinmenu{ position:fixed; right:auto; }
   .pinbtn{ margin-left:auto; flex:none; width:24px; height:24px; padding:3px; border:1px solid #c9ccd1;
     background:#fff; border-radius:6px; cursor:pointer; line-height:0; }
@@ -229,6 +234,17 @@
   .empty h2{ font-family:var(--fjalla); font-weight:400; font-size:25px;
     letter-spacing:.5px; margin:0 0 6px; color:#33363c; }
   .empty p{ color:#54585f; margin:6px 0; }
+  .intro{ max-width:600px; text-align:left; }
+  .intro h2{ text-align:center; font-size:30px; }
+  .intro .lead{ font-size:16px; text-align:center; margin:4px 0 16px; }
+  .intro .steps{ margin:0 0 14px; padding-left:22px; color:#33363c; }
+  .intro .steps li{ margin:7px 0; line-height:1.4; }
+  .intro .priv{ background:#eef4ec; border-radius:8px; padding:9px 12px; font-size:13.5px; }
+  .demobar{ display:flex; align-items:center; gap:9px; flex-wrap:wrap; margin:0 0 14px;
+    background:#fff6d6; border:1px solid #ead9a0; border-radius:12px; padding:9px 13px;
+    font-size:14px; color:#4a4330; }
+  .demobar span{ flex:1 1 240px; }
+  .demobar .bigbtn{ padding:6px 12px; font-size:13px; }
   .empty .row{ margin-top:14px; display:flex; gap:9px; justify-content:center; flex-wrap:wrap; }
   .bigbtn{ font-weight:700; border-radius:8px; padding:10px 17px; border:1px solid var(--accent);
     background:var(--accent); color:#fff; }
@@ -351,6 +367,8 @@
           <button data-act="paste">Paste</button>
           <button data-act="open">Open</button>
           <button data-act="save">Save</button>
+          <div class="msep"></div>
+          <button data-act="startover">Start over&hellip;</button>
         </div>
       </span>
       </div></div>
@@ -1099,9 +1117,9 @@ function memberCard(m){
     +(meta?" <span class='mmeta'>"+esc(meta)+"</span>":"")+"</span>"
     +"<span class='chev'>&#9660;</span></div>"+det+"</div>";
 }
-function callingCard(c){
+function callingCard(c,dim){
   var cur=membersAt(c.id);
-  var cls="calling"+(callingChanged(c)?" changed":"");
+  var cls="calling"+(callingChanged(c)?" changed":"")+(dim?" dim":"");
   var inner=cur.length
     ? "<div class='slot'>"+cur.map(memberCard).join("")+"</div>"
     : "<div class='vacant'>Vacant</div>";
@@ -1111,14 +1129,25 @@ function callingCard(c){
 function renderBoard(){
   var board=document.getElementById("board");
   if(!MODEL.callings.length){
-    board.innerHTML="<div class='empty'><h2>Welcome</h2>"
-      +"<p>Pull your ward's callings to begin, or explore with sample data.</p>"
-      +"<p>Then drag members between callings to plan changes &mdash; everything stays "
-      +"in your browser.</p>"
-      +"<div class='row'><button class='bigbtn' data-act='getdata'>Get data from LCR</button>"
-      +"<button class='bigbtn alt' data-act='demo'>Try the demo</button></div></div>";
+    board.innerHTML="<div class='empty intro'><h2>Callings Manager</h2>"
+      +"<p class='lead'>Plan ward calling changes on one colorful board. See every organization, "
+      +"who serves where and for how long, which callings are vacant, and who is available.</p>"
+      +"<ol class='steps'>"
+      +"<li><b>Bring in your ward.</b> One bookmark reads your callings from LCR.</li>"
+      +"<li><b>Plan by dragging.</b> Move people between callings, into vacancies, or to "
+      +"Names to Consider. Undo anytime.</li>"
+      +"<li><b>Review and print.</b> See only the proposed changes, ready for bishopric meeting.</li>"
+      +"</ol>"
+      +"<p class='priv'>&#128274; Private: ward data stays in this browser on this computer. "
+      +"Nothing is uploaded, and nothing changes in LCR.</p>"
+      +"<div class='row'><button class='bigbtn' data-act='getdata'>Get my ward's data</button>"
+      +"<button class='bigbtn alt' data-act='demo'>Explore a sample ward</button></div></div>";
     return;
   }
+  var demoBar=/^Demo Ward/.test(MODEL.unit||"")
+    ?"<div class='demobar'><span><b>Sample ward.</b> Names are made up. Try dragging people around.</span>"
+      +"<button class='bigbtn' data-act='getdata'>Get my ward's data</button>"
+      +"<button class='bigbtn alt' data-act='intro'>Back to intro</button></div>":"";
   /* group callings by org -> sub, preserving order */
   var orgs=[],oidx={};
   MODEL.callings.forEach(function(c){
@@ -1128,7 +1157,7 @@ function renderBoard(){
     O.subs[O.sidx[c.sub]].callings.push(c);
   });
 
-  var html="";
+  var html=demoBar;
   /* names-to-consider pool */
   var pool=membersAt("pool");
   html+="<div class='dropzone pool' data-loc='pool'>"
@@ -1166,32 +1195,36 @@ function renderBoard(){
   orgs.forEach(function(O,i){
     var col=COLLAPSED[O.name]?" collapsed":"";
     var body="";
+    var orgAny=!SEARCH;
     O.subs.forEach(function(S){
-      var subHit=SEARCH&&(matchSearch(S.name)||matchSearch(O.name));
-      var cards=S.callings.filter(function(c){
-        if(!tenureMatch(c))return false;
-        if(!SEARCH||subHit)return true;
-        if(matchSearch(c.name))return true;
-        return membersAt(c.id).some(function(m){return matchSearch(m.name);});
-      }).map(callingCard).join("");
-      if((TENURE_MIN||SEARCH)&&!cards)return;
+      /* Search fades non-matches instead of hiding them, so they stay drop targets. */
+      var subHit=SEARCH&&(matchSearch(S.name)||matchSearch(O.name)),subAny=!SEARCH;
+      var cards=S.callings.filter(tenureMatch).map(function(c){
+        var hit=!SEARCH||subHit||matchSearch(c.name)
+          ||membersAt(c.id).some(function(m){return matchSearch(m.name);});
+        if(hit)subAny=true;
+        return callingCard(c,!hit);
+      }).join("");
+      if(TENURE_MIN&&!cards)return;
+      if(subAny)orgAny=true;
       var addBtn="<button class='add-calling' data-addcalling='"
         +esc(O.name)+SEP+esc(S.name)+"' title='Add a calling'>+</button>";
-      body+="<div class='sub'>"
+      body+="<div class='sub"+(subAny?"":" dim")+"'>"
         +(S.name?"<div class='sub-title'>"+esc(S.name)+"</div>":"")
         +"<div class='callings'>"+cards+addBtn+"</div></div>";
     });
-    if((TENURE_MIN||SEARCH)&&!body)return;
-    html+="<div class='org"+col+"' data-org='"+esc(O.name)+"' style='--bg:"
+    if(TENURE_MIN&&!body)return;
+    /* During search, orgs with no matches also collapse; a click opens them for this search. */
+    if(SEARCH&&!orgAny)col=SEARCH_OPEN[O.name]?"":" collapsed";
+    html+="<div class='org"+col+(orgAny?"":" dim")+"' data-org='"+esc(O.name)+"' style='--bg:"
       +orgColor(O.name,i)+"'>"
       +"<div class='org-head'><span class='org-title'>"+esc(O.name)+"</span>"
       +"<span class='caret'>&#9660;</span></div>"
       +"<div class='org-body'>"+body+"</div></div>";
   });
   html+="</div>";
-  if((SEARCH||TENURE_MIN)&&/<div id='columns'[^>]*><\/div>$/.test(html))
-    html+="<div class='dz-hint' style='padding:18px 4px'>No callings match"
-      +(SEARCH?" &ldquo;"+esc(SEARCH)+"&rdquo;":"")+(TENURE_MIN?" at "+(TENURE_MIN/12)+"+ years":"")+".</div>";
+  if(TENURE_MIN&&/<div id='columns'[^>]*><\/div>$/.test(html))
+    html+="<div class='dz-hint' style='padding:18px 4px'>No callings held "+(TENURE_MIN/12)+"+ years.</div>";
 
   /* hide bin */
   var hid=membersAt("hide");
@@ -1239,6 +1272,16 @@ function doAct(act,el){
   else if(act==="changes"){ showChanges(); }
   else if(act==="undo"){ undoStep(); }
   else if(act==="redo"){ redoStep(); }
+  else if(act==="intro"){ clearBoard(); }
+  else if(act==="startover"){
+    if(!MODEL.callings.length){ flash("Nothing to clear."); return; }
+    var demo=/^Demo Ward/.test(MODEL.unit||"");
+    if(!confirm(demo?"Clear the sample ward and go back to the intro?"
+      :"Start over?\n\nThis removes the ward data and your planned changes from this browser. "
+       +"It does not change anything in LCR.\n\nTo keep this plan, choose Cancel and use Data > Save first."))return;
+    clearBoard();
+    flash("Cleared. Nothing is stored in this browser now.");
+  }
   else if(act==="demo"){ ingest(deepCopy(DEMO),{replace:true,trusted:true}); }
   else if(act==="addmember"){ addMember(); }
   else if(act==="layoutmenu"){ toggleMenu("layoutMenu"); }
@@ -1322,6 +1365,13 @@ function toggleMenu(id){
     m.classList.remove("leftmenu");
     if(m.getBoundingClientRect().left<8)m.classList.add("leftmenu");
   }
+}
+function clearBoard(){
+  MODEL=newModel(); UNDO=[]; REDO=[]; updateUndoButtons();
+  try{ localStorage.removeItem(STORE); localStorage.removeItem(REPORT_KEY); }catch(e){}
+  hide("reportModal");
+  renderAll();
+  if(TAB_CHANNEL)TAB_CHANNEL.postMessage("cleared");
 }
 function addMember(){
   var name=prompt("Name of the member to add (Last, First):","");
@@ -1438,6 +1488,11 @@ document.getElementById("board").addEventListener("click",function(e){
   var oh=e.target.closest(".org-head");
   if(oh){
     var org=oh.parentElement.dataset.org;
+    if(SEARCH&&oh.parentElement.classList.contains("dim")){
+      SEARCH_OPEN[org]=!SEARCH_OPEN[org];
+      oh.parentElement.classList.toggle("collapsed",!SEARCH_OPEN[org]);
+      return;
+    }
     COLLAPSED[org]=!COLLAPSED[org];
     oh.parentElement.classList.toggle("collapsed",!!COLLAPSED[org]);
     return;
@@ -1449,7 +1504,9 @@ document.querySelector(".htools").addEventListener("click",function(e){
   var b=e.target.closest("[data-act]");
   if(b)doAct(b.dataset.act,b);
 });
+var SEARCH_OPEN={};
 function setSearch(v){
+  SEARCH_OPEN={};
   var inp=document.getElementById("search");
   if(inp.value!==v)inp.value=v;
   SEARCH=v.trim().toLowerCase();
@@ -1752,6 +1809,9 @@ if(TAB_CHANNEL)TAB_CHANNEL.onmessage=function(e){
     var r=pendingReport();
     if(r)showReport(r); else flash("Updated from LCR.");
     TAB_CHANNEL.postMessage("adopted");
+  }else if(e.data==="cleared"){
+    MODEL=newModel(); UNDO=[]; REDO=[]; updateUndoButtons();
+    hide("reportModal"); renderAll();
   }else if(e.data==="adopted"&&AWAITING_TAB){
     AWAITING_TAB=false;
     window.close();
