@@ -95,6 +95,7 @@
     display:flex; align-items:center; gap:8px; }
   .dz-title .count{ font-weight:700; color:#8a8f97; font-size:12px; }
   .pool{ background:#e7e8ea; border:1px solid #d2d4d8; }
+  .dropzone.collapsed, #availTitle, #hideTitle{ cursor:pointer; }
   /* Search fades non-matches. Opacity sits on leaves only, so a faded drop target can
      still light up fully while dragging over it. */
   .calling.dim, .org.dim > .org-head, .sub.dim > .sub-title{ opacity:.4; transition:opacity .15s; }
@@ -273,6 +274,11 @@
     font-weight:800; font-size:13px; display:flex; align-items:center; justify-content:center; }
   .gd-small{ font-size:12px !important; color:#8a8f97 !important; }
   .gd-bmline{ margin:8px 0 !important; }
+  .gd-status{ border-radius:9px; padding:10px 12px; margin:8px 0 10px; font-size:14px; line-height:1.45; }
+  .gd-status.ok{ background:#eef4ec; color:#24452a; }
+  .gd-status.old{ background:#fff6d6; color:#4a4330; }
+  .gd-status button{ background:none; border:0; padding:0; color:var(--accent); font:inherit;
+    font-weight:700; cursor:pointer; text-decoration:underline; }
   .gd-open{ color:var(--accent); font-weight:700; font-size:14px; }
   .modalbox kbd{ font:600 12px var(--lato,sans-serif); background:#eef0f3; border:1px solid #d3d7dd;
     border-radius:4px; padding:0 5px; white-space:nowrap; }
@@ -444,6 +450,8 @@
     <h3>Get your ward's callings</h3>
     <p>Your data stays in your browser. Nothing is uploaded.</p>
 
+    <div id="gdStatus" class="gd-status" hidden></div>
+    <div id="gdSetup">
     <div class="gd-label">First time only</div>
     <div class="gd-step"><span class="gd-n">1</span><div>
       <b>Show your bookmarks bar.</b>
@@ -461,11 +469,12 @@
       </div>
       <p class="gd-small">Have an older one? Delete it first.</p>
     </div></div>
+    </div>
 
     <div class="gd-label">Every time</div>
     <div class="gd-step"><span class="gd-n">3</span><div>
       <b>Open Callings By Organization in LCR.</b>
-      <p class="gd-bmline"><a class="gd-open" href="https://lcr.churchofjesuschrist.org/mlt/orgs?lang=eng" target="_blank" rel="noopener">Open LCR &#8599;</a></p>
+      <p class="gd-bmline"><a class="gd-open" href="https://lcr.churchofjesuschrist.org/mlt/orgs?lang=eng" rel="noopener" title="Opens LCR in this tab. Your board is saved and reopens after the bookmark.">Open LCR &#8594;</a></p>
       <p>Sign in if asked, and wait for the names to appear.</p>
     </div></div>
     <div class="gd-step"><span class="gd-n">4</span><div>
@@ -539,7 +548,7 @@
 "use strict";
 
 /* ====================== scraper (also used by the bookmarklet) ============= */
-function bmScrape(){
+function bmScrape(quiet){
   var H=location.host||"";
   if(H.indexOf("lcr.churchofjesuschrist.org")<0){
     alert("Open the LCR Callings By Organization page first, then click this button:\n\n"
@@ -576,6 +585,7 @@ function bmScrape(){
     }
   }
   if(!orgs.length){
+    if(quiet)return null;
     alert("No calling tables were found.\n\nMake sure you are on the LCR Callings By Organization page "
       +"and that it has fully loaded, then try again.");
     return null;
@@ -584,19 +594,39 @@ function bmScrape(){
     source:"lcr.churchofjesuschrist.org/mlt/orgs",organizations:orgs};
 }
 function bmDeliver(){
-  var data=bmScrape();
-  if(!data)return;
+  var first=bmScrape(true);
+  if(first){ go(first); return; }
+  if((location.host||"").indexOf("lcr.churchofjesuschrist.org")<0)return;
+  if(!/[/]mlt[/]orgs/.test(location.pathname)){
+    if(confirm("This isn't the Callings By Organization page.\n\nGo there now? "
+      +"When it finishes loading, click the bookmark again."))
+      location.href="/mlt/orgs?lang=eng";
+    return;
+  }
+  var wn=document.createElement("div");
+  wn.textContent="Waiting for LCR to finish loading\u2026";
+  wn.style.cssText="position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:2147483647;"
+    +"background:#2f3034;color:#fff;padding:10px 18px;border-radius:9px;font:600 14px sans-serif;";
+  document.body.appendChild(wn);
+  var k=0;
+  (function wait(){
+    var d=bmScrape(true);
+    if(d){ wn.remove(); go(d); }
+    else if(++k<40)setTimeout(wait,500);
+    else{ wn.remove(); bmScrape(); }
+  })();
+  function go(data){
   /* Data goes to the tool over postMessage only, never in a URL, so it cannot land in
      browser history. The tool tab is opened by a second click once collection is done:
      opening it earlier backgrounds this tab, and the hidden report page stalls there. */
-  var TOOL="__TOOL_URL__",tw=null,ready=false,pending=null;
+  var TOOL="__TOOL_URL__",BMVER="__BM_VER__",tw=null,ready=false,pending=null;
   var TORIGIN=(TOOL.match(/^https?:[/][/][^/]+/)||[""])[0];
   window.addEventListener("message",function(e){
     if(tw&&e.source===tw&&e.origin===TORIGIN&&e.data==="callings-ready"){ ready=true; flush(); }
   });
   function flush(){
     if(!ready||!pending)return;
-    tw.postMessage({type:"callings-import",json:pending},TORIGIN);
+    tw.postMessage({type:"callings-import",json:pending,ver:BMVER},TORIGIN);
     pending=null;
     toast("Sent to Callings Manager.");
   }
@@ -726,6 +756,7 @@ function bmDeliver(){
   ov.querySelector("#_bmx").onclick=function(){ov.remove();};
   ov.onclick=function(e){if(e.target===ov)ov.remove();};
   }
+}
 }
 
 /* ====================== helpers =========================================== */
@@ -1271,7 +1302,7 @@ function renderAvailList(){
 function doAct(act,el){
   if(act!=="datamenu")document.getElementById("dataMenu").classList.remove("open");
   if(act==="datamenu"){ toggleMenu("dataMenu"); }
-  else if(act==="getdata"){ show("getdataModal"); }
+  else if(act==="getdata"){ updateGdStatus(); show("getdataModal"); }
   else if(act==="paste"){
     document.getElementById("pasteText").value="";
     document.getElementById("pasteMsg").textContent="";
@@ -1475,7 +1506,8 @@ document.getElementById("board").addEventListener("click",function(e){
   if(rel){ moveMember(rel.dataset.rel,"pool"); return; }
   var hd=e.target.closest("[data-hide]");
   if(hd){ moveMember(hd.dataset.hide,"hide"); return; }
-  if(e.target.closest("#availTitle")){
+  /* A collapsed section opens from a click anywhere on it, not just its title line. */
+  if(e.target.closest("#availTitle")||e.target.closest(".avail.collapsed")){
     AVAIL_COLLAPSED=!AVAIL_COLLAPSED;
     e.target.closest(".avail").classList.toggle("collapsed",AVAIL_COLLAPSED);
     return;
@@ -1489,7 +1521,7 @@ document.getElementById("board").addEventListener("click",function(e){
     mem.classList.toggle("expanded",!!EXPANDED[id]);
     return;
   }
-  var ht=e.target.closest("#hideTitle");
+  var ht=e.target.closest("#hideTitle")||(e.target.closest(".hide.collapsed")&&document.getElementById("hideTitle"));
   if(ht){
     HIDECOLLAPSED=!HIDECOLLAPSED;
     ht.parentElement.classList.toggle("collapsed",HIDECOLLAPSED);
@@ -1721,6 +1753,24 @@ function saveProject(){
 }
 
 /* ====================== bookmarklet ======================================= */
+var BM_VER="",BMVER_KEY="wardCallingsBoard.bmver";
+function updateGdStatus(){
+  var st=document.getElementById("gdStatus"),setup=document.getElementById("gdSetup"),used="";
+  try{ used=localStorage.getItem(BMVER_KEY)||""; }catch(e){}
+  setup.hidden=false; st.hidden=!used; st.className="gd-status";
+  if(!used)return;
+  if(used===BM_VER){
+    st.classList.add("ok");
+    st.innerHTML="&#10003; Your <b>Grab Ward Callings</b> bookmark is already set up in this browser. "
+      +"Go to step 3. <button type='button' id='gdShowSetup'>Show setup steps</button>";
+    setup.hidden=true;
+    document.getElementById("gdShowSetup").onclick=function(){ setup.hidden=false; this.remove(); };
+  }else{
+    st.classList.add("old");
+    st.innerHTML="Your bookmark works, but it's an older version. To update it, delete it and "
+      +"drag the new one in step 2.";
+  }
+}
 (function(){
   var BM="javascript:(function(){"+bmScrape.toString()+";"+bmDeliver.toString()
     +";bmDeliver();})();";
@@ -1728,6 +1778,10 @@ function saveProject(){
   if(/^https?:$/.test(location.protocol)){
     BM=BM.replace("__TOOL_URL__",location.origin+location.pathname);
   }
+  /* Version tag = hash of the bookmark code, so the tool can tell which bookmark sent data. */
+  var hsh=5381; for(var i=0;i<BM.length;i++)hsh=((hsh*33)^BM.charCodeAt(i))>>>0;
+  BM_VER=hsh.toString(36);
+  BM=BM.replace("__BM_VER__",BM_VER);
   if(location.protocol==="file:")document.getElementById("localNote").style.display="";
   document.getElementById("bookmarklet").href=BM;
   document.getElementById("bmcode").value=BM;
@@ -1778,6 +1832,9 @@ var DEMO={unit:"Demo Ward (000000)",generated:new Date().toISOString(),source:"d
 /* ====================== LCR import ======================================= */
 var LCR_ORIGIN="https://lcr.churchofjesuschrist.org";
 function importFromLcr(){
+  /* The bookmarklet opens the tool by window name. Drop the name so the next import gets a
+     fresh tab instead of re-targeting this one with a hash-only change, which never reloads. */
+  if(window.name==="callingsManagerImport")window.name="";
   var h=location.hash;
   if(h.indexOf("#import=")===0){
     /* Old bookmarks put ward data in the URL, which browsers keep in history. Refuse it. */
@@ -1800,7 +1857,8 @@ function importFromLcr(){
       /* Scrapes only: a message must not be able to open a full project. */
       if(!obj||!obj.organizations)throw new Error("not a scrape");
       if(!ingest(obj))return;
-      if(TAB_CHANNEL){ AWAITING_TAB=true; TAB_CHANNEL.postMessage("imported"); }
+      try{ localStorage.setItem(BMVER_KEY,typeof d.ver==="string"&&d.ver?d.ver:"old"); }catch(err){}
+      if(TAB_CHANNEL)TAB_CHANNEL.postMessage("imported");
     }catch(err){
       flash("Couldn't read the LCR data. Try the bookmark again.");
     }
@@ -1809,22 +1867,27 @@ function importFromLcr(){
 }
 
 /* An already-open tool tab must adopt the import, or its stale model overwrites it on next save. */
-var TAB_CHANNEL=null,AWAITING_TAB=false;
+var TAB_CHANNEL=null;
 try{ TAB_CHANNEL=new BroadcastChannel("callings-manager"); }catch(e){}
+/* The tab that received the import is the one in front, so it keeps the board. Older tool
+   tabs take the new data (so they can't save a stale board over it) and step aside: close
+   if the browser allows, otherwise say they can be closed. */
 if(TAB_CHANNEL)TAB_CHANNEL.onmessage=function(e){
   if(e.data==="imported"){
     load();
     UNDO=[]; REDO=[]; updateUndoButtons();
+    hide("reportModal");
     renderAll();
-    var r=pendingReport();
-    if(r)showReport(r); else flash("Updated from LCR.");
-    TAB_CHANNEL.postMessage("adopted");
+    try{ window.close(); }catch(err){}
+    setTimeout(function(){
+      var f=document.getElementById("flash");
+      f.textContent="This board was updated from LCR in another tab. You can close this tab.";
+      f.classList.remove("hidden");
+      clearTimeout(flashTimer);
+    },300);
   }else if(e.data==="cleared"){
     MODEL=newModel(); UNDO=[]; REDO=[]; updateUndoButtons();
     hide("reportModal"); renderAll();
-  }else if(e.data==="adopted"&&AWAITING_TAB){
-    AWAITING_TAB=false;
-    window.close();
   }
 };
 
